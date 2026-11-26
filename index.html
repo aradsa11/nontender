@@ -152,8 +152,11 @@
           <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">1. Upload File Data (Auto-Fill Otomatis ke Seluruh 20 Dokumen)</h2>
           <p class="text-xs text-slate-500">Unggah file Excel HPS, Excel Penawaran SPSE, PDF Summary Report, atau PDF Kualifikasi.</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <span id="upload-status" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full hidden"></span>
+          <a id="btn-contoh-gdrive" href="https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link" target="_blank" rel="noopener noreferrer" onclick="openExampleDrive(event)" class="px-3 py-1 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded-md transition inline-flex items-center gap-1">
+            Contoh File (Google Drive)
+          </a>
           <button type="button" onclick="clearUploadData()" class="px-3 py-1 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-md transition cursor-pointer">
             Bersihkan Upload
           </button>
@@ -2871,6 +2874,10 @@ function restoreLocalStorageDraftOnLoad() {
     if (Array.isArray(savedState.items)) {
       state.items = savedState.items.map(x => ({ ...x }));
     }
+    // Selalu wajibkan memilih Jenis Konstruksi di Urutan Pertama (tidak otomatis terpilih dari draf lama)
+    state.jenisKonstruksi = "";
+    state._kbliManual = false;
+    state._sbuManual = false;
   } catch (err) {
     // ignore corrupted local draft
   }
@@ -3423,6 +3430,9 @@ function updateMissingFieldHighlights() {
 
 function clearUploadData() {
   state.uploadedFlags = { hps: false, pen: false, jdw: false, kual: false, sum: false };
+  state.jenisKonstruksi = "";
+  state._kbliManual = false;
+  state._sbuManual = false;
 
   // Reset data yang terhubung dengan Upload File Data (HPS, Penawaran, Jadwal, Kualifikasi SIKAP, Summary Report)
   state.items = [];
@@ -3478,6 +3488,32 @@ function clearUploadData() {
 
   populateFormInputs();
   syncAll();
+}
+
+
+const EXAMPLE_DRIVE_URLS = {
+  hps: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
+  pen: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
+  jdw: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
+  kual: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
+  sum: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link"
+};
+
+function getCurrentExampleDriveUrl() {
+  const f = state.uploadedFlags || {};
+  const nextKey = UPLOAD_SEQUENCE.find(k => !f[k]);
+  const key = nextKey || "hps";
+  return EXAMPLE_DRIVE_URLS[key] || "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link";
+}
+
+function openExampleDrive(ev) {
+  const url = getCurrentExampleDriveUrl();
+  const linkEl = document.getElementById("btn-contoh-gdrive");
+  if (linkEl) linkEl.href = url;
+  if (ev) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    ev.preventDefault();
+  }
 }
 
 function syncAll() {
@@ -3537,6 +3573,7 @@ function syncAll() {
 
 window.addEventListener('DOMContentLoaded', () => {
   restoreLocalStorageDraftOnLoad();
+  state.jenisKonstruksi = "";
   if (String(state.kualifikasiUsaha || '').toLowerCase().includes('kecil') && (!state.kpVal || Number(state.kpVal) === 0)) {
     state.kpVal = 5;
   }
