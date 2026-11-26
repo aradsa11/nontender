@@ -3470,43 +3470,7 @@ function updateMissingFieldHighlights() {
 
 
 function clearUploadData() {
-  state.uploadedFlags = { hps: false, pen: false, jdw: false, kual: false, sum: false };
-  state.jenisKonstruksi = "";
-  state._kbliManual = false;
-  state._sbuManual = false;
-
-  // Reset data yang terhubung dengan Upload File Data (HPS, Penawaran, Jadwal, Kualifikasi SIKAP, Summary Report)
-  state.items = [];
-  state.kegiatan = "";
-  state.pekerjaan = "";
-  state.lokasi = "";
-  state.nilaiPagu = 0;
-  state.nilaiHps = 0;
-  state.namaPerusahaan = "";
-  state.npwp = "";
-  state.namaPimpinan = "";
-  state.jabatanPimpinan = "";
-  state.alamatPerusahaan = "";
-  state.aktaInfo = "";
-  state.namaPpk = "Evan Dwianto Rante Tondok, ST";
-  state.nipPpk = "NIP. 199305112019031008";
-  state.skPp = "T-900.1.3.5/1266/PERKIM.PERMUKIMAN";
-  state.tglSkPp = "12 Agustus 2026";
-  state.namaPp = "Rieni Puspita, SP";
-  state.nipPp = "NIPPPK. 199109122024212036";
-
-  state.jadwal = [
-    { key: "dok", label: "No. Dokumen", kode: "Dok", tgl: "", waktu: "" },
-    { key: "bapp", label: "Ba Pemb Penawaran", kode: "Ba Pemb Penawaran", tgl: "", waktu: "" },
-    { key: "und", label: "Und Kla. Teknis & Nego", kode: "Und Kla. Teknis & Nego", tgl: "", waktu: "" },
-    { key: "baep", label: "BAEP", kode: "BAEP", tgl: "", waktu: "" },
-    { key: "baklar", label: "BA Klarifikasi", kode: "BA Klarifikasi", tgl: "", waktu: "" },
-    { key: "bahn", label: "BAHN", kode: "BAHN", tgl: "", waktu: "" },
-    { key: "bahp", label: "BAHP", kode: "BAHP", tgl: "", waktu: "" },
-    { key: "ttp", label: "Ttp Penetapan", kode: "Ttp Penetapan", tgl: "", waktu: "" },
-    { key: "peng", label: "Pengumuman Pemenang", kode: "Pengumuman Pemenang", tgl: "", waktu: "" },
-    { key: "bast", label: "BAST", kode: "BAST", tgl: "", waktu: "" }
-  ];
+  resetAllInputsForFreshLoad();
 
   const defaults = {
     hps: 'Pilih file HPS...',
@@ -3529,9 +3493,8 @@ function clearUploadData() {
 
   populateFormInputs();
   syncAll();
+  renderPreview();
 }
-
-
 const EXAMPLE_DRIVE_URLS = {
   hps: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
   pen: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
