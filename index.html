@@ -993,16 +993,29 @@ async function handleKualifikasiPdfUpload(e) {
   document.getElementById('lbl-kual').textContent = file.name; state.uploadedFlags.kual = true;
   const text = await extractPdfText(file);
   if (!text) return;
-  const mNama = text.match(/Identitas Peserta\s+Nama\s+(.+?)\s+NPWP/i);
+  const mNama = text.match(/Identitas Peserta\s+Nama\s+(.+?)\s+NPWP/i)
+    || text.match(/Nama\s+Peserta\s*:?\s*(.+?)\s+(?:NPWP|Alamat)/i);
   if (mNama) state.namaPerusahaan = mNama[1].trim();
-  const mNpwp = text.match(/NPWP\s+(\d{15,16})/i);
-  if (mNpwp) state.npwp = mNpwp[1].trim();
-  const mAlamat = text.match(/Alamat\s+(.+?)\s+Telp/i);
+  const mNpwp = text.match(/NPWP\s*:?\s*(\d[\d.\-\s]{13,22})/i);
+  if (mNpwp) state.npwp = mNpwp[1].replace(/[^0-9]/g, '').trim();
+  const mAlamat = text.match(/Alamat\s*:?\s*(.+?)\s+(?:Telp|Kode\s*Pos|Provinsi|Kabupaten)/i);
   if (mAlamat) state.alamatPerusahaan = mAlamat[1].trim();
   const mAkta = text.match(/Akta Pendirian\s+Nomor\s+(\d+)\s+Tanggal Surat\s+(.+?)\s+Notaris/i);
   if (mAkta) state.aktaInfo = `AKTA NO. ${mAkta[1]} TGL ${mAkta[2].trim().toUpperCase()}`;
-  const mPengurus = text.match(/Manajerial\s+Nama\s+KTP\s+Alamat\s+NPWP\s+Tanggal Mulai Menjabat\s+Tanggal Akhir Menjabat\s+Status\s+([A-Za-z\s]+?)\s+\d{16}/i);
-  if (mPengurus) state.namaPimpinan = mPengurus[1].trim();
+
+  const mPengurus = text.match(/Manajerial\s+Nama\s+KTP\s+Alamat\s+NPWP\s+Tanggal Mulai Menjabat\s+Tanggal Akhir Menjabat\s+Status\s+([A-Za-z.,'\-\s]+?)\s+\d{14,20}/i)
+    || text.match(/(?:Direktur(?:\s+Utama)?|Pimpinan|Penanggung\s*Jawab)\s*:?\s*([A-Z][A-Za-z.,'\-\s]{2,60}?)(?=\s+(?:NIK|KTP|NPWP|Alamat|Jabatan|Status|Tanggal))/i);
+  if (mPengurus && mPengurus[1]) {
+    state.namaPimpinan = mPengurus[1].replace(/\s+/g, ' ').trim();
+  }
+
+  const mJabatan = text.match(/(?:Jabatan|Posisi|Kedudukan)\s*:?\s*((?:Direktur(?:\s+Utama)?|Wakil\s+Direktur|Komisaris(?:\s+Utama)?|Kepala\s+Cabang|Pimpinan|Penanggung\s*Jawab)[A-Za-z\s]*)/i)
+    || text.match(/\b(Direktur\s+Utama|Direktur|Wakil\s+Direktur|Komisaris\s+Utama|Komisaris|Kepala\s+Cabang|Penanggung\s*Jawab)\b/i);
+  if (mJabatan && mJabatan[1]) {
+    state.jabatanPimpinan = capitalizeWords(mJabatan[1].replace(/\s+/g, ' ').trim());
+  } else if (state.namaPimpinan && !state.jabatanPimpinan) {
+    state.jabatanPimpinan = "Direktur";
+  }
   populateFormInputs();
   syncAll();
   showStatus(`Data Kualifikasi (${state.namaPerusahaan}) berhasil diekstrak!`);
@@ -1019,6 +1032,7 @@ function populateFormInputs() {
     'evalAdm','evalKual','kpVal','nVal','evalAlat','evalPersonil','evalRkk',
     'alatJenis','alatStatus','namaPelaksana','skkPelaksana','namaK3','skkK3'
   ];
+  autoFillPimpinanDanJabatan();
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -1053,9 +1067,9 @@ function readFormInputs() {
   if (!String(state.alatStatus || '').trim()) {
     state.alatStatus = "Milik Sendiri";
   }
-  const angka = getNomorSuratAngka();
-  state.nomorSuratAngka = angka;
-  state.prefixSurat = `T-000.3.2/${angka}/`;
+  const rawAngka = String(state.nomorSuratAngka || "").replace(/[^0-9]/g, "");
+  state.nomorSuratAngka = rawAngka;
+  state.prefixSurat = `T-000.3.2/${rawAngka || "0000"}/`;
   state.suffixSurat = "PBJ";
 }
 
@@ -2860,27 +2874,54 @@ function loadSavedDraft(e) {
   reader.readAsText(file, 'utf-8');
 }
 
+function resetAllInputsForFreshLoad() {
+  state.jenisKonstruksi = "";
+  state._kbliManual = false;
+  state._sbuManual = false;
+
+  state.kegiatan = "";
+  state.pekerjaan = "";
+  state.lokasi = "";
+  state.nilaiPagu = 0;
+  state.nilaiHps = 0;
+
+  state.namaPerusahaan = "";
+  state.npwp = "";
+  state.namaPimpinan = "";
+  state.jabatanPimpinan = "";
+  state.alamatPerusahaan = "";
+  state.aktaInfo = "";
+
+  state.nomorSuratAngka = "";
+  state.prefixSurat = "T-000.3.2/0000/";
+  state.suffixSurat = "PBJ";
+  state.nVal = 0;
+
+  state.alatJenis = "";
+  state.alatVol = "";
+  state.alatStatus = "";
+  state.namaPelaksana = "";
+  state.namaK3 = "";
+
+  state.items = [];
+  state.jadwal = [
+    { key: "dok", label: "No. Dokumen", kode: "Dok", tgl: "", waktu: "" },
+    { key: "bapp", label: "Ba Pemb Penawaran", kode: "Ba Pemb Penawaran", tgl: "", waktu: "" },
+    { key: "und", label: "Und Kla. Teknis & Nego", kode: "Und Kla. Teknis & Nego", tgl: "", waktu: "" },
+    { key: "baep", label: "BAEP", kode: "BAEP", tgl: "", waktu: "" },
+    { key: "baklar", label: "BA Klarifikasi", kode: "BA Klarifikasi", tgl: "", waktu: "" },
+    { key: "bahn", label: "BAHN", kode: "BAHN", tgl: "", waktu: "" },
+    { key: "bahp", label: "BAHP", kode: "BAHP", tgl: "", waktu: "" },
+    { key: "ttp", label: "Ttp Penetapan", kode: "Ttp Penetapan", tgl: "", waktu: "" },
+    { key: "peng", label: "Pengumuman Pemenang", kode: "Pengumuman Pemenang", tgl: "", waktu: "" },
+    { key: "bast", label: "BAST", kode: "BAST", tgl: "", waktu: "" }
+  ];
+  state.uploadedFlags = { hps: false, pen: false, jdw: false, sum: false, kual: false };
+}
+
 function restoreLocalStorageDraftOnLoad() {
-  try {
-    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    const savedState = parsed.state;
-    if (!savedState || typeof savedState !== 'object') return;
-    Object.assign(state, savedState);
-    if (Array.isArray(savedState.jadwal)) {
-      state.jadwal = savedState.jadwal.map(x => ({ ...x }));
-    }
-    if (Array.isArray(savedState.items)) {
-      state.items = savedState.items.map(x => ({ ...x }));
-    }
-    // Selalu wajibkan memilih Jenis Konstruksi di Urutan Pertama (tidak otomatis terpilih dari draf lama)
-    state.jenisKonstruksi = "";
-    state._kbliManual = false;
-    state._sbuManual = false;
-  } catch (err) {
-    // ignore corrupted local draft
-  }
+  // Saat halaman dimuat atau di-refresh, semua isian inputan dibersihkan agar mulai dari kosong
+  resetAllInputsForFreshLoad();
 }
 
 function saveXml() {
@@ -3516,8 +3557,19 @@ function openExampleDrive(ev) {
   }
 }
 
+
+function autoFillPimpinanDanJabatan() {
+  const hasNama = Boolean(String(state.namaPimpinan || '').trim());
+  const hasPerusahaan = Boolean(String(state.namaPerusahaan || '').trim());
+  const hasJab = Boolean(String(state.jabatanPimpinan || '').trim());
+  if (!hasJab && (hasNama || hasPerusahaan)) {
+    state.jabatanPimpinan = "Direktur";
+  }
+}
+
 function syncAll() {
   readFormInputs();
+  autoFillPimpinanDanJabatan();
   updateJenisKonstruksiHighlight();
   const kbliEl = document.getElementById('kbli');
   const sbuEl = document.getElementById('sbu');
@@ -3573,14 +3625,6 @@ function syncAll() {
 
 window.addEventListener('DOMContentLoaded', () => {
   restoreLocalStorageDraftOnLoad();
-  state.jenisKonstruksi = "";
-  if (String(state.kualifikasiUsaha || '').toLowerCase().includes('kecil') && (!state.kpVal || Number(state.kpVal) === 0)) {
-    state.kpVal = 5;
-  }
-  syncPpFieldsFromDataPP();
-  if (!state.skkPelaksana) state.skkPelaksana = "Pelaksana Lapangan Pekerjaan Saluran Irigasi";
-  if (!state.skkK3) state.skkK3 = "Personil Keselamatan dan Kesehatan kerja";
-  if (!String(state.alatStatus || '').trim()) state.alatStatus = "Milik Sendiri";
   populateFormInputs();
   syncAll();
   renderPreview();
