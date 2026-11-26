@@ -225,7 +225,7 @@
     <!-- TABS NAVIGATION -->
     <div id="step-guard-banner" class="mb-3 px-3.5 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold flex flex-wrap items-center justify-between gap-2">
       <span id="step-guard-text">Alur berurutan aktif: lengkapi tahap Upload sebelum melanjutkan ke tahap Edit berikutnya.</span>
-      <button type="button" onclick="advanceNextStep()" class="px-2.5 py-1 text-[11px] font-bold bg-amber-700 hover:bg-amber-600 text-white rounded cursor-pointer">
+      <button id="btn-step-action" type="button" onclick="handleStepBannerAction()" class="px-2.5 py-1 text-[11px] font-bold bg-amber-700 hover:bg-amber-600 text-white rounded cursor-pointer">
         Lanjut Tahap Berikutnya
       </button>
     </div>
@@ -3307,20 +3307,40 @@ function canAccessTab(tabId) {
   return true;
 }
 
+function isOnPreviewStep() {
+  const previewEl = document.getElementById('tab-preview');
+  return Boolean(previewEl && !previewEl.classList.contains('hidden'));
+}
+
 function updateStepGuardUi(blockedMsg = null) {
   const banner = document.getElementById('step-guard-banner');
   const textEl = document.getElementById('step-guard-text');
+  const actionBtn = document.getElementById('btn-step-action');
+  const onPreview = isOnPreviewStep();
   if (!banner || !textEl) return;
 
   if (blockedMsg) {
     banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-red-300 bg-red-50 text-red-700 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
     textEl.textContent = blockedMsg;
+  } else if (onPreview) {
+    banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-blue-300 bg-blue-50 text-blue-800 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
+    textEl.textContent = 'Anda berada di tahap Pratinjau & Cetak 20 Sheet. Klik tombol di kanan untuk mengunduh semua dokumen PDF.';
   } else if (!hasAnyUploadedFile()) {
     banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
     textEl.textContent = 'Tahap Upload belum lengkap: unggah file secara berurutan (1. HPS -> 2. Penawaran -> 3. Jadwal -> 4. Kualifikasi SIKAP PDF -> 5. Summary PDF).';
   } else {
     banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
     textEl.textContent = 'Tahap Upload terpenuhi. Silakan lanjutkan pengisian tahap Edit secara berurutan.';
+  }
+
+  if (actionBtn) {
+    if (onPreview) {
+      actionBtn.textContent = 'Download Semua Dokumen PDF';
+      actionBtn.className = 'px-2.5 py-1 text-[11px] font-bold bg-blue-700 hover:bg-blue-600 text-white rounded cursor-pointer';
+    } else {
+      actionBtn.textContent = 'Lanjut Tahap Berikutnya';
+      actionBtn.className = 'px-2.5 py-1 text-[11px] font-bold bg-amber-700 hover:bg-amber-600 text-white rounded cursor-pointer';
+    }
   }
 
   STEP_ORDER.forEach(tId => {
@@ -3332,11 +3352,23 @@ function updateStepGuardUi(blockedMsg = null) {
   });
 }
 
+function handleStepBannerAction() {
+  if (isOnPreviewStep()) {
+    printAllDocs();
+    return;
+  }
+  advanceNextStep();
+}
+
 function advanceNextStep() {
   const currentVisible = STEP_ORDER.find(tId => {
     const el = document.getElementById(tId);
     return el && !el.classList.contains('hidden');
   }) || 'tab-master';
+  if (currentVisible === 'tab-preview') {
+    printAllDocs();
+    return;
+  }
   const curIdx = STEP_ORDER.indexOf(currentVisible);
   const nextTab = STEP_ORDER[Math.min(curIdx + 1, STEP_ORDER.length - 1)];
   switchTab(nextTab);
