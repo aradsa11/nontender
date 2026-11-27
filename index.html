@@ -3723,23 +3723,7 @@ function updateMissingFieldHighlights() {
     prevNo.classList.toggle('text-blue-700', !noMissing);
   }
 
-  let banner = document.getElementById('missing-summary-banner');
-  const masterPanel = document.getElementById('tab-master');
-  if (masterPanel && !banner) {
-    banner = document.createElement('div');
-    banner.id = 'missing-summary-banner';
-    banner.className = 'mb-3 px-3.5 py-2 rounded-lg border text-xs font-semibold flex items-center justify-between';
-    masterPanel.insertBefore(banner, masterPanel.firstChild);
-  }
-  if (banner) {
-    if (missingCount > 0) {
-      banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-red-300 bg-red-50 text-red-700 text-xs font-semibold flex items-center justify-between';
-      banner.innerHTML = `<span>Tanda merah aktif: terdapat <strong>${missingCount}</strong> kolom yang belum terisi atau masih bernilai default (0000).</span>`;
-    } else {
-      banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center justify-between';
-      banner.innerHTML = `<span>Semua kolom utama telah terisi.</span>`;
-    }
-  }
+
 }
 
 
