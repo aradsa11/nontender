@@ -154,6 +154,11 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <span id="upload-status" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full hidden"></span>
+          <label for="inp-bulk-folder" class="px-3 py-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition cursor-pointer inline-flex items-center gap-1.5 shadow-xs" title="Pilih folder yang berisi file HPS, Penawaran, Jadwal, Dokmil, Kualifikasi, dan Summary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+            Upload Folder
+            <input id="inp-bulk-folder" type="file" webkitdirectory directory multiple class="hidden" onchange="handleBulkFolderUpload(event)">
+          </label>
           <a id="btn-contoh-gdrive" href="https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link" target="_blank" rel="noopener noreferrer" onclick="openExampleDrive(event)" class="px-3 py-1 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded-md transition inline-flex items-center gap-1">
             Contoh File (Google Drive)
           </a>
@@ -163,28 +168,12 @@
         </div>
       </div>
       
-      <div id="jenis-konstruksi-box" class="mb-3 p-3 rounded-lg border border-indigo-200 bg-indigo-50/60 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span class="text-[10px] font-bold uppercase text-indigo-700 block">Urutan Pertama</span>
-          <label for="jenisKonstruksi" class="text-xs font-bold text-slate-800">Pilihan Jenis Konstruksi</label>
-          <p class="text-[11px] text-slate-500">Pilih kategori konstruksi paket sebelum melanjutkan urutan upload file data.</p>
-        </div>
-        <div class="flex flex-col items-end">
-          <select id="jenisKonstruksi" class="border border-red-500 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500" onchange="syncAll()">
-            <option value="" selected>-- Pilih Jenis Konstruksi --</option>
-            <option value="Kontruksi Jalan">Kontruksi Jalan</option>
-            <option value="Kontruksi Drainase">Kontruksi Drainase</option>
-            <option value="Kontruksi bangunan gedung">Kontruksi bangunan gedung</option>
-          </select>
-          <span id="jenis-konstruksi-warning" class="text-[10px] font-bold text-red-600 mt-1">Wajib dipilih (belum memilih)</span>
-        </div>
-      </div>
 
             <div id="upload-seq-banner" class="mb-3 px-3 py-1.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-900 text-[11px] font-semibold flex flex-wrap items-center justify-between gap-2">
         <span id="upload-seq-text">Urutan Upload wajib berurutan: Urutan 1 (Upload File HPS) harus diunggah terlebih dahulu sebelum lanjut ke Urutan 2.</span>
-        <span id="upload-seq-progress" class="font-mono text-[11px] text-sky-700">0 / 5 Selesai</span>
+        <span id="upload-seq-progress" class="font-mono text-[11px] text-sky-700">0 / 6 Selesai</span>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
         <label id="slot-hps" onclick="return checkUploadStepAllowed('hps', event)" class="upload-slot border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg p-3 cursor-pointer transition bg-slate-50 flex flex-col justify-between">
           <span class="text-[10px] font-bold uppercase text-blue-700">Urutan 1</span>
           <span class="text-xs font-semibold text-slate-700 mt-0.5">Upload File HPS (.xlsx / .csv)</span>
@@ -206,15 +195,22 @@
           <input id="inp-jdw" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleJadwalUpload(event)">
         </label>
 
+        <label id="slot-dokmil" onclick="return checkUploadStepAllowed('dokmil', event)" class="upload-slot border-2 border-dashed border-indigo-300 hover:border-indigo-500 rounded-lg p-3 cursor-pointer transition bg-indigo-50/40 flex flex-col justify-between">
+          <span class="text-[10px] font-bold uppercase text-indigo-700">Urutan 4</span>
+          <span class="text-xs font-semibold text-indigo-900 mt-0.5">Upload Dokmil (.pdf)</span>
+          <span id="lbl-dokmil" class="text-[11px] text-indigo-700 mt-1 truncate">Pilih PDF Dokmil...</span>
+          <input id="inp-dokmil" type="file" accept=".pdf" class="hidden" onchange="handleDokmilPdfUpload(event)">
+        </label>
+
         <label id="slot-kual" onclick="return checkUploadStepAllowed('kual', event)" class="upload-slot border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg p-3 cursor-pointer transition bg-slate-50 flex flex-col justify-between">
-          <span class="text-[10px] font-bold uppercase text-slate-500">Urutan 4</span>
+          <span class="text-[10px] font-bold uppercase text-slate-500">Urutan 5</span>
           <span class="text-xs font-semibold text-slate-700 mt-0.5">Upload Kualifikasi SIKAP (.pdf)</span>
           <span id="lbl-kual" class="text-[11px] text-slate-500 mt-1 truncate">Pilih PDF Kualifikasi...</span>
           <input id="inp-kual" type="file" accept=".pdf" class="hidden" onchange="handleKualifikasiPdfUpload(event)">
         </label>
 
         <label id="slot-sum" onclick="return checkUploadStepAllowed('sum', event)" class="upload-slot border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg p-3 cursor-pointer transition bg-slate-50 flex flex-col justify-between">
-          <span class="text-[10px] font-bold uppercase text-slate-500">Urutan 5</span>
+          <span class="text-[10px] font-bold uppercase text-slate-500">Urutan 6</span>
           <span class="text-xs font-semibold text-slate-700 mt-0.5">Upload Summary Report (.pdf)</span>
           <span id="lbl-sum" class="text-[11px] text-slate-500 mt-1 truncate">Pilih PDF Summary Report...</span>
           <input id="inp-sum" type="file" accept=".pdf" class="hidden" onchange="handleSummaryPdfUpload(event)">
@@ -344,7 +340,11 @@
             </div>
             <div>
               <label class="font-semibold text-slate-600">Jabatan</label>
-              <input id="jabatanPimpinan" type="text" class="w-full mt-1 border rounded px-2.5 py-1.5" oninput="syncAll()">
+              <select id="jabatanPimpinan" class="w-full mt-1 border rounded px-2.5 py-1.5 bg-white" onchange="syncAll()">
+                <option value="Direktur" selected>Direktur</option>
+                <option value="Wakil Direktur">Wakil Direktur</option>
+                <option value="Komisaris">Komisaris</option>
+              </select>
             </div>
             <div class="sm:col-span-2">
               <label class="font-semibold text-slate-600">Alamat Perusahaan</label>
@@ -494,22 +494,22 @@
             <div>
               <label class="font-semibold text-slate-600">Peralatan</label>
               <select id="evalAlat" class="w-full mt-1 border rounded px-2 py-1.5" onchange="syncAll()">
-                <option value="P">P (Memenuhi)</option>
-                <option value="O">O (Tidak)</option>
+                <option value="P">&#10003; (Memenuhi)</option>
+                <option value="O">&#10007; (Tidak)</option>
               </select>
             </div>
             <div>
               <label class="font-semibold text-slate-600">Personil</label>
               <select id="evalPersonil" class="w-full mt-1 border rounded px-2 py-1.5" onchange="syncAll()">
-                <option value="P">P (Memenuhi)</option>
-                <option value="O">O (Tidak)</option>
+                <option value="P">&#10003; (Memenuhi)</option>
+                <option value="O">&#10007; (Tidak)</option>
               </select>
             </div>
             <div>
               <label class="font-semibold text-slate-600">RKK</label>
               <select id="evalRkk" class="w-full mt-1 border rounded px-2 py-1.5" onchange="syncAll()">
-                <option value="P">P (Memenuhi)</option>
-                <option value="O">O (Tidak)</option>
+                <option value="P">&#10003; (Memenuhi)</option>
+                <option value="O">&#10007; (Tidak)</option>
               </select>
             </div>
           </div>
@@ -537,7 +537,7 @@
             </div>
             <div>
               <label class="font-semibold text-slate-600">SKK Pelaksana</label>
-              <select id="skkPelaksana" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="syncAll()">
+              <select id="skkPelaksana" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="state._skkPelaksanaManual = true; syncAll()">
                 <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi" selected>Pelaksana Lapangan Pekerjaan Saluran Irigasi</option>
                 <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya">Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya</option>
               </select>
@@ -548,7 +548,10 @@
             </div>
             <div>
               <label class="font-semibold text-slate-600">SKK Petugas K3</label>
-              <input id="skkK3" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="syncAll()">
+              <select id="skkK3" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="state._skkK3Manual = true; state._skkK3FromDokmil = false; syncAll()">
+                <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya">Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya</option>
+                <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi" selected>Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi</option>
+              </select>
             </div>
           </div>
         </div>
@@ -575,7 +578,6 @@ if (typeof pdfjsLib !== 'undefined') {
 }
 
 const state = {
-  jenisKonstruksi: "",
   skpd: "Dinas Perumahan Rakyat dan Kawasan Permukiman",
   bpbj: "Bagian Pengadaan Barang dan Jasa",
   daerah: "Kab. Kutai Timur",
@@ -597,7 +599,7 @@ const state = {
   namaPerusahaan: "",
   npwp: "",
   namaPimpinan: "",
-  jabatanPimpinan: "",
+  jabatanPimpinan: "Direktur",
   alamatPerusahaan: "",
   kbli: "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase",
   sbu: "BS004 - Konstruksi Jaringan dan Drainase",
@@ -636,7 +638,7 @@ const state = {
   namaK3: "",
   skkK3: "Personil Keselamatan dan Kesehatan kerja",
   activeDoc: "all",
-  uploadedFlags: { hps: false, pen: false, jdw: false, sum: false, kual: false }
+  uploadedFlags: { hps: false, pen: false, jdw: false, kual: false, sum: false, dokmil: false }
 };
 
 function fmtRp(num) {
@@ -796,58 +798,67 @@ function setJadwalEntry(key, isoDate, timeStr) {
   }
 }
 
-function handleJadwalUpload(e) {
+function processJadwalFile(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(false);
+    document.getElementById('lbl-jdw').textContent = file.name;
+    state.uploadedFlags.jdw = true;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const wb = XLSX.read(evt.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      let loadedCount = 0;
+
+      rows.forEach(r => {
+        if (!r || r.length < 3) return;
+        const tahapRaw = String(r[1] || r[0] || "").trim().toLowerCase();
+        if (!tahapRaw || tahapRaw === "tahap" || tahapRaw === "no") return;
+
+        const mulaiParsed = parseScheduleCellToDateTime(r[2]);
+        const sampaiParsed = parseScheduleCellToDateTime(r[3]);
+        if (!mulaiParsed.isoDate && !sampaiParsed.isoDate) return;
+
+        loadedCount++;
+        if (tahapRaw.includes("upload")) {
+          setJadwalEntry("dok", mulaiParsed.isoDate, mulaiParsed.timeStr);
+        } else if (tahapRaw.includes("pembukaan")) {
+          setJadwalEntry("bapp", mulaiParsed.isoDate, mulaiParsed.timeStr);
+        } else if (tahapRaw.includes("evaluasi")) {
+          const tglEv = sampaiParsed.isoDate || mulaiParsed.isoDate;
+          const wktEv = sampaiParsed.timeStr || mulaiParsed.timeStr;
+          setJadwalEntry("baep", tglEv, wktEv);
+          setJadwalEntry("baklar", tglEv, wktEv);
+          setJadwalEntry("bahn", tglEv, wktEv);
+          setJadwalEntry("bahp", tglEv, wktEv);
+          setJadwalEntry("ttp", tglEv, wktEv);
+          setJadwalEntry("peng", tglEv, wktEv);
+        } else if (tahapRaw.includes("klarifikasi") || tahapRaw.includes("negosiasi")) {
+          setJadwalEntry("und", mulaiParsed.isoDate, mulaiParsed.timeStr || "10.00 - 15.00 WITA");
+          const tglNego = sampaiParsed.isoDate || mulaiParsed.isoDate;
+          setJadwalEntry("baklar", tglNego, "");
+          setJadwalEntry("bahn", tglNego, "");
+        } else if (tahapRaw.includes("kontrak") || tahapRaw.includes("bast")) {
+          setJadwalEntry("bast", mulaiParsed.isoDate, mulaiParsed.timeStr);
+        }
+      });
+
+      if (loadedCount > 0) {
+        syncAll();
+        showStatus(`Berhasil memuat ${loadedCount} tahapan jadwal ke Master & seluruh 20 dokumen!`);
+      }
+      updateUploadSequenceUi();
+      resolve(true);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsBinaryString(file);
+  });
+}
+
+async function handleJadwalUpload(e) {
   if (!guardUploadInputChange('jdw', e)) return;
   const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('lbl-jdw').textContent = file.name; state.uploadedFlags.jdw = true;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const wb = XLSX.read(evt.target.result, { type: 'binary' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-    let loadedCount = 0;
-
-    rows.forEach(r => {
-      if (!r || r.length < 3) return;
-      const tahapRaw = String(r[1] || r[0] || "").trim().toLowerCase();
-      if (!tahapRaw || tahapRaw === "tahap" || tahapRaw === "no") return;
-
-      const mulaiParsed = parseScheduleCellToDateTime(r[2]);
-      const sampaiParsed = parseScheduleCellToDateTime(r[3]);
-      if (!mulaiParsed.isoDate && !sampaiParsed.isoDate) return;
-
-      loadedCount++;
-      if (tahapRaw.includes("upload")) {
-        setJadwalEntry("dok", mulaiParsed.isoDate, mulaiParsed.timeStr);
-      } else if (tahapRaw.includes("pembukaan")) {
-        setJadwalEntry("bapp", mulaiParsed.isoDate, mulaiParsed.timeStr);
-      } else if (tahapRaw.includes("evaluasi")) {
-        const tglEv = sampaiParsed.isoDate || mulaiParsed.isoDate;
-        const wktEv = sampaiParsed.timeStr || mulaiParsed.timeStr;
-        setJadwalEntry("baep", tglEv, wktEv);
-        setJadwalEntry("baklar", tglEv, wktEv);
-        setJadwalEntry("bahn", tglEv, wktEv);
-        setJadwalEntry("bahp", tglEv, wktEv);
-        setJadwalEntry("ttp", tglEv, wktEv);
-        setJadwalEntry("peng", tglEv, wktEv);
-      } else if (tahapRaw.includes("klarifikasi") || tahapRaw.includes("negosiasi")) {
-        setJadwalEntry("und", mulaiParsed.isoDate, mulaiParsed.timeStr || "10.00 - 15.00 WITA");
-        const tglNego = sampaiParsed.isoDate || mulaiParsed.isoDate;
-        setJadwalEntry("baklar", tglNego, "");
-        setJadwalEntry("bahn", tglNego, "");
-      } else if (tahapRaw.includes("kontrak") || tahapRaw.includes("bast")) {
-        setJadwalEntry("bast", mulaiParsed.isoDate, mulaiParsed.timeStr);
-      }
-    });
-
-    if (loadedCount > 0) {
-      syncAll();
-      showStatus(`Berhasil memuat ${loadedCount} tahapan jadwal ke Master & seluruh 20 dokumen!`);
-      updateUploadSequenceUi();
-    }
-  };
-  reader.readAsBinaryString(file);
+  await processJadwalFile(file);
 }
 
 
@@ -864,83 +875,101 @@ function showStatus(msg) {
   el.classList.remove('hidden');
 }
 
-function handleHpsUpload(e) {
-  if (!guardUploadInputChange('hps', e)) return;
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('lbl-hps').textContent = file.name; state.uploadedFlags.hps = true;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const wb = XLSX.read(evt.target.result, { type: 'binary' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-    const parsedItems = [];
-    let noCounter = 1;
-    rows.forEach(r => {
-      if (!r || !r[0]) return;
-      const uraian = String(r[0]).trim();
-      if (uraian.toLowerCase().includes('jenis barang') || uraian.toLowerCase().includes('total')) return;
-      const sat = r[1] ? String(r[1]).trim() : "";
-      const vol = r[2] !== undefined && r[2] !== "" && !isNaN(Number(r[2])) ? Number(r[2]) : null;
-      const hps = r[3] !== undefined && r[3] !== "" && !isNaN(Number(r[3])) ? Number(r[3]) : null;
-      const existing = state.items.find(x => x.uraian.trim().toLowerCase() === uraian.toLowerCase());
-      const pen = existing && existing.pen !== null ? existing.pen : hps;
-      const nego = (pen !== null && hps !== null) ? Math.min(pen, hps) : pen;
-      parsedItems.push({ no: noCounter++, uraian, sat, vol, hps, pen, nego });
-    });
-    if (parsedItems.length > 0) {
-      state.items = parsedItems;
-      populateFormInputs();
-      syncAll();
-      showStatus(`Berhasil memuat ${parsedItems.length} baris HPS dari ${file.name}`);
+function processHpsFile(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(false);
+    document.getElementById('lbl-hps').textContent = file.name;
+    state.uploadedFlags.hps = true;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const wb = XLSX.read(evt.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      const parsedItems = [];
+      let noCounter = 1;
+      rows.forEach(r => {
+        if (!r || !r[0]) return;
+        const uraian = String(r[0]).trim();
+        if (uraian.toLowerCase().includes('jenis barang') || uraian.toLowerCase().includes('total')) return;
+        const sat = r[1] ? String(r[1]).trim() : "";
+        const vol = r[2] !== undefined && r[2] !== "" && !isNaN(Number(r[2])) ? Number(r[2]) : null;
+        const hps = r[3] !== undefined && r[3] !== "" && !isNaN(Number(r[3])) ? Number(r[3]) : null;
+        const existing = state.items.find(x => x.uraian.trim().toLowerCase() === uraian.toLowerCase());
+        const pen = existing && existing.pen !== null ? existing.pen : hps;
+        const nego = (pen !== null && hps !== null) ? Math.min(pen, hps) : pen;
+        parsedItems.push({ no: noCounter++, uraian, sat, vol, hps, pen, nego });
+      });
+      if (parsedItems.length > 0) {
+        state.items = parsedItems;
+        populateFormInputs();
+        syncAll();
+        showStatus(`Berhasil memuat ${parsedItems.length} baris HPS dari ${file.name}`);
+      }
       updateUploadSequenceUi();
-    }
-  };
-  reader.readAsBinaryString(file);
+      resolve(true);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsBinaryString(file);
+  });
 }
 
-function handlePenawaranUpload(e) {
+async function handleHpsUpload(e) {
+  if (!guardUploadInputChange('hps', e)) return;
+  const file = e.target.files[0];
+  await processHpsFile(file);
+}
+
+function processPenawaranFile(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(false);
+    document.getElementById('lbl-pen').textContent = file.name;
+    state.uploadedFlags.pen = true;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const wb = XLSX.read(evt.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      const parsedItems = [];
+      let noCounter = 1;
+      rows.forEach(r => {
+        if (!r || !r[0]) return;
+        const col0 = String(r[0]).trim();
+        if (col0.toLowerCase().startsWith('nama paket')) {
+          if (r[1]) { state.kegiatan = String(r[1]).trim(); state.pekerjaan = state.kegiatan; }
+          return;
+        }
+        if (col0.toLowerCase().startsWith('nama peserta')) {
+          if (r[1]) state.namaPerusahaan = String(r[1]).trim();
+          return;
+        }
+        if (col0.toLowerCase().startsWith('kode tender') || col0.toLowerCase().includes('jenis barang') || col0.toLowerCase().includes('produk dalam negeri') || col0.toLowerCase().includes('total penawaran')) return;
+        
+        const sat = r[1] ? String(r[1]).trim() : "";
+        const vol = r[2] !== undefined && r[2] !== "" && !isNaN(Number(r[2])) ? Number(r[2]) : null;
+        const pen = r[3] !== undefined && r[3] !== "" && !isNaN(Number(r[3])) ? Number(r[3]) : null;
+        const existing = state.items.find(x => x.uraian.trim().toLowerCase() === col0.toLowerCase());
+        const hps = existing && existing.hps !== null ? existing.hps : pen;
+        const nego = (pen !== null && hps !== null) ? Math.min(pen, hps) : pen;
+        parsedItems.push({ no: noCounter++, uraian: col0, sat, vol, hps, pen, nego });
+      });
+      if (parsedItems.length > 0) {
+        state.items = parsedItems;
+        populateFormInputs();
+        syncAll();
+        showStatus(`Berhasil memuat penawaran (${state.namaPerusahaan})`);
+      }
+      updateUploadSequenceUi();
+      resolve(true);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsBinaryString(file);
+  });
+}
+
+async function handlePenawaranUpload(e) {
   if (!guardUploadInputChange('pen', e)) return;
   const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('lbl-pen').textContent = file.name; state.uploadedFlags.pen = true;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const wb = XLSX.read(evt.target.result, { type: 'binary' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-    const parsedItems = [];
-    let noCounter = 1;
-    rows.forEach(r => {
-      if (!r || !r[0]) return;
-      const col0 = String(r[0]).trim();
-      if (col0.toLowerCase().startsWith('nama paket')) {
-        if (r[1]) { state.kegiatan = String(r[1]).trim(); state.pekerjaan = state.kegiatan; }
-        return;
-      }
-      if (col0.toLowerCase().startsWith('nama peserta')) {
-        if (r[1]) state.namaPerusahaan = String(r[1]).trim();
-        return;
-      }
-      if (col0.toLowerCase().startsWith('kode tender') || col0.toLowerCase().includes('jenis barang') || col0.toLowerCase().includes('produk dalam negeri') || col0.toLowerCase().includes('total penawaran')) return;
-      
-      const sat = r[1] ? String(r[1]).trim() : "";
-      const vol = r[2] !== undefined && r[2] !== "" && !isNaN(Number(r[2])) ? Number(r[2]) : null;
-      const pen = r[3] !== undefined && r[3] !== "" && !isNaN(Number(r[3])) ? Number(r[3]) : null;
-      const existing = state.items.find(x => x.uraian.trim().toLowerCase() === col0.toLowerCase());
-      const hps = existing && existing.hps !== null ? existing.hps : pen;
-      const nego = (pen !== null && hps !== null) ? Math.min(pen, hps) : pen;
-      parsedItems.push({ no: noCounter++, uraian: col0, sat, vol, hps, pen, nego });
-    });
-    if (parsedItems.length > 0) {
-      state.items = parsedItems;
-      populateFormInputs();
-      syncAll();
-      showStatus(`Berhasil memuat penawaran (${state.namaPerusahaan})`);
-      updateUploadSequenceUi();
-    }
-  };
-  reader.readAsBinaryString(file);
+  await processPenawaranFile(file);
 }
 
 async function extractPdfText(file) {
@@ -959,13 +988,12 @@ async function extractPdfText(file) {
   return fullText;
 }
 
-async function handleSummaryPdfUpload(e) {
-  if (!guardUploadInputChange('sum', e)) return;
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('lbl-sum').textContent = file.name; state.uploadedFlags.sum = true;
+async function processSummaryPdfFile(file) {
+  if (!file) return false;
+  document.getElementById('lbl-sum').textContent = file.name;
+  state.uploadedFlags.sum = true;
   const text = await extractPdfText(file);
-  if (!text) return;
+  if (!text) return false;
   const mPaket = text.match(/Nama Tender\s+(.+?)\s+K\/L\/P\/D/i);
   if (mPaket) { state.kegiatan = mPaket[1].trim(); state.pekerjaan = state.kegiatan; }
   const mSatker = text.match(/Satuan Kerja\s+(.+?)\s+Jenis Pengadaan/i);
@@ -983,16 +1011,22 @@ async function handleSummaryPdfUpload(e) {
   populateFormInputs();
   syncAll();
   showStatus("Data Summary Report PDF berhasil diekstrak!");
-      updateUploadSequenceUi();
+  updateUploadSequenceUi();
+  return true;
 }
 
-async function handleKualifikasiPdfUpload(e) {
-  if (!guardUploadInputChange('kual', e)) return;
+async function handleSummaryPdfUpload(e) {
+  if (!guardUploadInputChange('sum', e)) return;
   const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('lbl-kual').textContent = file.name; state.uploadedFlags.kual = true;
+  await processSummaryPdfFile(file);
+}
+
+async function processKualifikasiPdfFile(file) {
+  if (!file) return false;
+  document.getElementById('lbl-kual').textContent = file.name;
+  state.uploadedFlags.kual = true;
   const text = await extractPdfText(file);
-  if (!text) return;
+  if (!text) return false;
   const mNama = text.match(/Identitas Peserta\s+Nama\s+(.+?)\s+NPWP/i)
     || text.match(/Nama\s+Peserta\s*:?\s*(.+?)\s+(?:NPWP|Alamat)/i);
   if (mNama) state.namaPerusahaan = mNama[1].trim();
@@ -1010,7 +1044,7 @@ async function handleKualifikasiPdfUpload(e) {
   }
 
   const mJabatan = text.match(/(?:Jabatan|Posisi|Kedudukan)\s*:?\s*((?:Direktur(?:\s+Utama)?|Wakil\s+Direktur|Komisaris(?:\s+Utama)?|Kepala\s+Cabang|Pimpinan|Penanggung\s*Jawab)[A-Za-z\s]*)/i)
-    || text.match(/\b(Direktur\s+Utama|Direktur|Wakil\s+Direktur|Komisaris\s+Utama|Komisaris|Kepala\s+Cabang|Penanggung\s*Jawab)\b/i);
+    || text.match(/(Direktur\s+Utama|Direktur|Wakil\s+Direktur|Komisaris\s+Utama|Komisaris|Kepala\s+Cabang|Penanggung\s*Jawab)/i);
   if (mJabatan && mJabatan[1]) {
     state.jabatanPimpinan = capitalizeWords(mJabatan[1].replace(/\s+/g, ' ').trim());
   } else if (state.namaPimpinan && !state.jabatanPimpinan) {
@@ -1019,13 +1053,238 @@ async function handleKualifikasiPdfUpload(e) {
   populateFormInputs();
   syncAll();
   showStatus(`Data Kualifikasi (${state.namaPerusahaan}) berhasil diekstrak!`);
-      updateUploadSequenceUi();
+  updateUploadSequenceUi();
+  return true;
+}
+
+async function handleKualifikasiPdfUpload(e) {
+  if (!guardUploadInputChange('kual', e)) return;
+  const file = e.target.files[0];
+  await processKualifikasiPdfFile(file);
+}
+
+
+async function processDokmilPdfFile(file) {
+  if (!file) return false;
+  document.getElementById('lbl-dokmil').textContent = file.name;
+  state.uploadedFlags.dokmil = true;
+  const text = await extractPdfText(file);
+  if (!text) return false;
+
+  // 1. Nomor Registrasi Surat (angka tengah di antara tanda '/' pada Nomor: T-000.3.2/6729/PBJ atau T~000.3.2/6729/PBJ)
+  const mNoSurat = text.match(/Nomor\s*:?\s*T\s*[~\-–—]?\s*000\s*\.\s*3\s*\.\s*2\s*\/\s*(\d[\d\s]*\d|\d)\s*\//i)
+    || text.match(/T\s*[~\-–—]?\s*000\s*\.\s*3\s*\.\s*2\s*\/\s*(\d[\d\s]*\d|\d)\s*\//i)
+    || text.match(/Nomor\s*:?\s*[^\/\r\n]{2,30}\/\s*(\d[\d\s]*\d|\d)\s*\//i);
+  if (mNoSurat && mNoSurat[1]) {
+    const cleanNoSurat = mNoSurat[1].replace(/\s+/g, '').trim();
+    state.nomorSuratAngka = cleanNoSurat;
+    state.prefixSurat = `T-000.3.2/${cleanNoSurat}/`;
+  }
+
+  // 2. Paket / Pekerjaan / Lokasi / Pagu / HPS / Sumber Dana / Perusahaan (jika masih kosong)
+  const mPaket = text.match(/Nama paket pekerjaan\s*:\s*(.+?)(?=\s+(?:1\.3|Uraian singkat|Jenis Kontrak))/i)
+    || text.match(/Nama paket\s*:?\s*(.+?)(?=\s+Uraian singkat)/i);
+  if (mPaket && mPaket[1]) {
+    const pkt = mPaket[1].replace(/\s+/g, ' ').trim();
+    if (!state.kegiatan) state.kegiatan = pkt;
+    if (!state.pekerjaan) state.pekerjaan = pkt;
+  }
+
+  const mPagu = text.match(/Pagu Anggaran\s*:\s*Rp\.?\s*([\d.,]+)/i);
+  if (mPagu && (!state.nilaiPagu || Number(state.nilaiPagu) === 0)) {
+    state.nilaiPagu = Number(mPagu[1].replace(/\./g, '').replace(',', '.'));
+  }
+  const mHps = text.match(/(?:Harga Perkiraan Sendiri \(HPS\)|Nilai total HPS)\s*:\s*Rp\.?\s*([\d.,]+)/i);
+  if (mHps && (!state.nilaiHps || Number(state.nilaiHps) === 0)) {
+    state.nilaiHps = Number(mHps[1].replace(/\./g, '').replace(',', '.'));
+  }
+
+  if (/APBD\s*Perubahan|APBDP/i.test(text)) {
+    state.sumberDana = "APBDP";
+  } else if (/APBD/i.test(text)) {
+    state.sumberDana = "APBD";
+  }
+
+  const mPerusahaan = text.match(/Kepada Yth\.[\s\S]{0,160}?((?:CV|PT|FIRMA|KOPERASI)\.\s*[A-Z0-9\s.,'\-]+?)(?=\s+di\s+Tempat)/i);
+  if (mPerusahaan && mPerusahaan[1] && !state.namaPerusahaan) {
+    state.namaPerusahaan = mPerusahaan[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // 3. KBLI (Izin Usaha) mengikuti data upload Dokmil
+  const dokmilKbliSectionMatch = text.match(/(?:1\.\s*Memiliki\s+Izin\s+Usaha|Memiliki\s+Izin\s+Usaha|KBLI)([\s\S]{0,450}?)(?=2\.\s*Memiliki\s+Sertifikat\s+Badan\s+Usaha|Memiliki\s+Sertifikat\s+Badan\s+Usaha|$)/i);
+  const kbliSearchScope = dokmilKbliSectionMatch ? dokmilKbliSectionMatch[1] : text;
+  const mKbli = kbliSearchScope.match(/KBLI\s*(?:\(?2020\)?|\(?2025\)?)?\s*[:\-]?\s*(\d{5})\s*([\s\S]*?)(?=\s+(?:atau\s+KBLI|2\.\s*Memiliki|Sertifikat\s+Standar)|$)/i)
+    || kbliSearchScope.match(/\b(42201|42101|41019)\b([\s\S]{0,160}?)(?=\s+(?:atau\s+KBLI|2\.\s*Memiliki)|$)/i)
+    || text.match(/KBLI\s*(?:\(?2020\)?|\(?2025\)?)?\s*[:\-]?\s*(\d{5})\s*([^\r\n]+)/i);
+  if (mKbli) {
+    const kodeKbli = mKbli[1].trim();
+    const uraianKbli = String(mKbli[2] || "").replace(/\s+/g, ' ').trim();
+    if (kodeKbli === "42201") {
+      state.kbli = "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase";
+    } else if (kodeKbli === "42101") {
+      state.kbli = "KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah";
+    } else if (kodeKbli === "41019") {
+      state.kbli = "KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya";
+    } else {
+      state.kbli = uraianKbli ? `KBLI ${kodeKbli} - ${uraianKbli}` : `KBLI ${kodeKbli}`;
+    }
+    state._kbliManual = true;
+  }
+
+  // 4. SBU
+  const mSbu = text.match(/Subklasifikasi\s*:\s*([A-Z]{2}\s*\d{3})\s*([^\n]+?)(?=\s+(?:3\.|Peserta memiliki kinerja))/i);
+  if (mSbu) {
+    const kodeSbu = mSbu[1].replace(/\s+/g, '');
+    const namaSbu = mSbu[2].replace(/\s+/g, ' ').trim();
+    if (kodeSbu === "BS004") {
+      state.sbu = "BS004 - Konstruksi Jaringan dan Drainase";
+    } else if (kodeSbu === "BS001") {
+      state.sbu = "BS001 - Konstruksi Bangunan Sipil Jalan";
+    } else if (kodeSbu === "BG009") {
+      state.sbu = "BG009 - Konstruksi Bangunan Gedung Lainnya";
+    } else {
+      state.sbu = `${kodeSbu} - ${namaSbu}`;
+    }
+    state._sbuManual = true;
+  }
+
+  // 5. Peralatan (Persyaratan Teknis 10.3.e.1)
+  const mAlatBlock = text.match(/Memiliki kemampuan menyediakan\s+peralatan\s+untuk\s+pelaksanaan pekerjaan[\s\S]{0,400}?Jenis\s+Kapasitas\s+Jumlah\s+1\s+([A-Za-z0-9\s\-\/.,()]+?)\s+(\d+[.,]?\d*\s*(?:M3|m3|Ton|HP|PK|Unit|Liter|Ltr|m2|M2|Kw|KW))\s+(\d+\s*Unit)/i)
+    || text.match(/Jenis\s+Kapasitas\s+Jumlah\s+1\s+([A-Za-z0-9\s\-\/.,()]+?)\s+([\d.,]+\s*[A-Za-z0-9]+)\s+(\d+\s*Unit)/i);
+  if (mAlatBlock) {
+    const jenis = mAlatBlock[1].replace(/\s+/g, ' ').trim();
+    const kap = mAlatBlock[2].replace(/\s+/g, ' ').trim();
+    const jml = mAlatBlock[3].replace(/\s+/g, ' ').trim();
+    state.alatJenis = kap ? `${jenis} (${kap})` : jenis;
+    state.alatVol = jml;
+    if (!String(state.alatStatus || '').trim()) {
+      state.alatStatus = "Milik Sendiri";
+    }
+  }
+
+  // 6. Personel & SKK (Persyaratan Teknis 10.3.e.2)
+  const mPelaksana = text.match(/Pelaksana\s+\d+\s*Tahun\s+(SKK\s+[A-Za-z0-9\s\-\/.,()]+?)(?=\s+2\s+Petugas\s+K3|\s+Petugas\s+K3)/i);
+  if (mPelaksana && mPelaksana[1]) {
+    state.skkPelaksana = mPelaksana[1].replace(/\s+/g, ' ').trim();
+  }
+  const mK3 = text.match(/Petugas\s+K3(?:\s+\d+\s*Tahun)?\s*:?\s*((?:SKK\s+)?[A-Za-z0-9\s\-\/.,()]+?)(?=\s+(?:\[diisi|Keterangan|Sertifikat|10\.|11\.|Dokumen)|$)/i)
+    || text.match(/(?:SKK\s+)?(?:Petugas\s+(?:Keselamatan\s+dan\s+Kesehatan\s+Kerja|K3)\s*(?:Konstruksi)?(?:\s+(?:Muda|Madya|Utama))?)/i);
+  if (mK3 && mK3[1]) {
+    const extractedK3 = mK3[1].replace(/\s+/g, ' ').trim();
+    if (extractedK3 && !/^0\s*Tahun$/i.test(extractedK3)) {
+      state.skkK3 = extractedK3;
+      state._skkK3FromDokmil = true;
+    }
+  } else if (mK3 && mK3[0]) {
+    const extractedK3 = mK3[0].replace(/\s+/g, ' ').trim();
+    if (extractedK3) {
+      state.skkK3 = extractedK3;
+      state._skkK3FromDokmil = true;
+    }
+  }
+
+  populateFormInputs();
+  syncAll();
+  showStatus(`Data Dokmil PDF (${file.name}) berhasil diekstrak! No. Surat: ${state.nomorSuratAngka || '-'}`);
+  updateUploadSequenceUi();
+  return true;
+}
+
+async function handleDokmilPdfUpload(e) {
+  if (!guardUploadInputChange('dokmil', e)) return;
+  const file = e.target.files[0];
+  await processDokmilPdfFile(file);
+}
+
+function classifyBulkFile(file) {
+  if (!file || !file.name) return null;
+  const rawName = file.name.trim();
+  if (rawName.startsWith('~$') || rawName.startsWith('.')) return null;
+
+  const dotIdx = rawName.lastIndexOf('.');
+  if (dotIdx < 0) return null;
+  const ext = rawName.slice(dotIdx).toLowerCase();
+  const baseName = rawName.slice(0, dotIdx).trim().toLowerCase();
+
+  const isSpreadsheet = ['.xlsx', '.xls', '.csv'].includes(ext);
+  const isPdf = ext === '.pdf';
+
+  if (isSpreadsheet) {
+    if (/hps/i.test(baseName)) return 'hps';
+    if (/penawaran/i.test(baseName)) return 'pen';
+    if (/jadwal/i.test(baseName)) return 'jdw';
+  }
+  if (isPdf) {
+    if (/dokmil/i.test(baseName)) return 'dokmil';
+    if (/kualifikasi/i.test(baseName)) return 'kual';
+    if (/summary/i.test(baseName)) return 'sum';
+  }
+  return null;
+}
+
+async function handleBulkFolderUpload(e) {
+  const files = Array.from((e && e.target && e.target.files) || []);
+  if (!files.length) return;
+
+  const matched = {};
+  files.forEach(f => {
+    const slot = classifyBulkFile(f);
+    if (slot && !matched[slot]) {
+      matched[slot] = f;
+    }
+  });
+
+  const matchedKeys = UPLOAD_SEQUENCE.filter(k => Boolean(matched[k]));
+  if (matchedKeys.length === 0) {
+    alert(
+      'Tidak ditemukan file yang sesuai format nama depan & ekstensi di dalam folder tersebut.\n\n' +
+      'Format nama depan file yang dikenali:\n' +
+      '1. HPS... (.xlsx / .xls / .csv)\n' +
+      '2. Penawaran... (.xlsx / .xls / .csv)\n' +
+      '3. Jadwal... (.xlsx / .xls / .csv)\n' +
+      '4. Dokmil... (.pdf)\n' +
+      '5. Kualifikasi... (.pdf)\n' +
+      '6. Summary... (.pdf)'
+    );
+    if (e && e.target) e.target.value = '';
+    return;
+  }
+
+  const processors = {
+    hps: processHpsFile,
+    pen: processPenawaranFile,
+    jdw: processJadwalFile,
+    dokmil: processDokmilPdfFile,
+    kual: processKualifikasiPdfFile,
+    sum: processSummaryPdfFile
+  };
+
+  let loadedCount = 0;
+  for (const key of UPLOAD_SEQUENCE) {
+    if (matched[key]) {
+      const ok = await processors[key](matched[key]);
+      if (ok) loadedCount++;
+    }
+  }
+
+  const missingLabels = UPLOAD_SEQUENCE
+    .filter(k => !matched[k])
+    .map(k => UPLOAD_SLOT_NAMES[k]);
+
+  if (missingLabels.length === 0) {
+    showStatus(`Bulk Upload Folder berhasil: seluruh ${loadedCount}/6 file urutan terisi otomatis!`);
+  } else {
+    showStatus(`Bulk Upload Folder: ${loadedCount}/6 file terisi. Belum ditemukan di folder: ${missingLabels.join(', ')}`);
+  }
+  updateUploadSequenceUi();
+  updateStepGuardUi();
+  if (e && e.target) e.target.value = '';
 }
 
 // FORM SYNC
 function populateFormInputs() {
   const fields = [
-    'jenisKonstruksi','skpd','bpbj','daerah','kegiatan','pekerjaan','lokasi','sumberDana','tahun','metode','kualifikasiUsaha',
+    'skpd','bpbj','daerah','kegiatan','pekerjaan','lokasi','sumberDana','tahun','metode','kualifikasiUsaha',
     'nilaiPagu','nilaiHps','skPp','tglSkPp','namaPp','nipPp','namaPpk','nipPpk',
     'namaPerusahaan','npwp','namaPimpinan','jabatanPimpinan','alamatPerusahaan','kbli','sbu','aktaInfo',
     'nomorSuratAngka','jmlPendaftar','jmlPenawar','jmlLengkap',
@@ -1053,7 +1312,7 @@ function populateFormInputs() {
 function readFormInputs() {
   const numFields = ['nilaiPagu','nilaiHps','jmlPendaftar','jmlPenawar','jmlLengkap','kpVal','nVal'];
   const fields = [
-    'jenisKonstruksi','skpd','bpbj','daerah','kegiatan','pekerjaan','lokasi','sumberDana','tahun','metode','kualifikasiUsaha',
+    'skpd','bpbj','daerah','kegiatan','pekerjaan','lokasi','sumberDana','tahun','metode','kualifikasiUsaha',
     'nilaiPagu','nilaiHps','skPp','tglSkPp','namaPp','nipPp','namaPpk','nipPpk',
     'namaPerusahaan','npwp','namaPimpinan','jabatanPimpinan','alamatPerusahaan','kbli','sbu','aktaInfo',
     'nomorSuratAngka','jmlPendaftar','jmlPenawar','jmlLengkap',
@@ -1242,6 +1501,12 @@ function ttdPejabatRightHtml(tanggalStr = null) {
   `;
 }
 
+function symPo(v) {
+  if (v === 'P') return '&#10003;';
+  if (v === 'O') return '&#10007;';
+  return v || '-';
+}
+
 function buildAllDocuments() {
   const tot = computeTotals();
   const jBapp = getJadwalInfo('bapp');
@@ -1370,19 +1635,19 @@ function buildAllDocuments() {
               <tr>
                 <td style="text-align:center;">1</td>
                 <td>${state.namaPerusahaan}</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
                 <td style="text-align:center;">-</td>
                 <td style="text-align:center;">-</td>
                 <td style="text-align:center;">-</td>
                 <td style="text-align:center;">-</td>
                 <td style="text-align:center;">-</td>
                 <td style="text-align:center;">-</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
                 <td style="text-align:center;"><strong>${admHasil}</strong></td>
                 <td style="text-align:center;"><strong>${admKet}</strong></td>
               </tr>
@@ -1394,8 +1659,8 @@ function buildAllDocuments() {
                 <strong>Catatan :</strong><br>
                 1. Penawaran yang tidak memenuhi syarat Administrasi tidak dievaluasi lebih lanjut.<br>
                 2. Kolom 3 s/d 6 diisi :<br>
-                &nbsp;&nbsp;&nbsp;P = "Ya" jika sesuai<br>
-                &nbsp;&nbsp;&nbsp;O = "Tidak " jika tidak sesuai
+                &nbsp;&nbsp;&nbsp;&#10003; = "Ya" jika sesuai<br>
+                &nbsp;&nbsp;&nbsp;&#10007; = "Tidak " jika tidak sesuai
               </td>
               <td style="width:40%; text-align:center;">
                 <div><strong>PEJABAT PENGADAAN</strong></div>
@@ -1444,15 +1709,15 @@ function buildAllDocuments() {
               <tr>
                 <td style="text-align:center;">1</td>
                 <td>${state.namaPerusahaan}<br><small><em>(${state.aktaInfo})</em></small></td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
-                <td style="text-align:center;">P</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
+                <td style="text-align:center;">&#10003;</td>
                 <td style="text-align:center;"><strong>${kualHasil}</strong></td>
                 <td style="text-align:center;"><strong>${kualKet}</strong></td>
               </tr>
@@ -1464,7 +1729,7 @@ function buildAllDocuments() {
                 <strong>Catatan :</strong><br>
                 1. Penawaran yang tidak memenuhi syarat Administrasi tidak dievaluasi lebih lanjut.<br>
                 2. Kolom 3 s/d 10 diisi :<br>
-                &nbsp;&nbsp;&nbsp;P = "Ya" jika sesuai &nbsp;|&nbsp; O = "Tidak " jika tidak sesuai
+                &nbsp;&nbsp;&nbsp;&#10003; = "Ya" jika sesuai &nbsp;|&nbsp; &#10007; = "Tidak " jika tidak sesuai
               </td>
               <td style="width:40%; text-align:center;">
                 <div><strong>PEJABAT PENGADAAN</strong></div>
@@ -1507,7 +1772,7 @@ function buildAllDocuments() {
               <tr style="background:#f9fafb; font-weight:bold;">
                 <td style="text-align:center;">1</td>
                 <td colspan="6">${state.namaPerusahaan}</td>
-                <td style="text-align:center;">${state.evalAlat}</td>
+                <td style="text-align:center;">${symPo(state.evalAlat)}</td>
                 <td style="text-align:center;">${state.evalAlat === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
                 <td></td>
               </tr>
@@ -1519,7 +1784,7 @@ function buildAllDocuments() {
                 <td>${state.alatJenis}<br><small>Status kepemilikan alat : ${state.alatStatus}</small></td>
                 <td style="text-align:center;">${state.alatVol}</td>
                 <td style="text-align:center;">-</td>
-                <td style="text-align:center;">${state.evalAlat}</td>
+                <td style="text-align:center;">${symPo(state.evalAlat)}</td>
                 <td style="text-align:center;">${state.evalAlat === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
                 <td></td>
               </tr>
@@ -1530,7 +1795,7 @@ function buildAllDocuments() {
               <td style="width:55%;">
                 <strong>Catatan :</strong><br>
                 1. Penawaran yang tidak memenuhi syarat Teknis tidak dievaluasi lebih lanjut.<br>
-                2. Kolom 8 diisi : P = "Ya" jika sesuai | O = "Tidak " jika tidak sesuai
+                2. Kolom 8 diisi : &#10003; = "Ya" jika sesuai | &#10007; = "Tidak " jika tidak sesuai
               </td>
               <td style="width:45%; text-align:center;">
                 <div><strong>PEJABAT PENGADAAN</strong></div>
@@ -1558,31 +1823,31 @@ function buildAllDocuments() {
             </thead>
             <tbody>
               <tr style="font-weight:bold;"><td style="text-align:center;">1</td><td>Kepemimpinan dan Partisipasi Pekerja dalam Keselamatan Konstruksi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
-              <tr><td style="text-align:center;">a</td><td>Kepedulian pimpinan terhadap isu eksternal dan internal</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">b</td><td>Komitmen Keselamatan Konstruksi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">a</td><td>Kepedulian pimpinan terhadap isu eksternal dan internal</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">b</td><td>Komitmen Keselamatan Konstruksi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
 
               <tr style="font-weight:bold;"><td style="text-align:center;">2</td><td>Perencanaan Keselamatan Konstruksi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
-              <tr><td style="text-align:center;">a</td><td>Identifikasi bahaya, Penilaian resiko, Pengendalian dan Peluang</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">b</td><td>Rencana tindakan (sasaran & program)</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">c</td><td>Standar dan peraturan perundangan</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">a</td><td>Identifikasi bahaya, Penilaian resiko, Pengendalian dan Peluang</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">b</td><td>Rencana tindakan (sasaran & program)</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">c</td><td>Standar dan peraturan perundangan</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
 
               <tr style="font-weight:bold;"><td style="text-align:center;">3</td><td>Dukungan Keselamatan Konstruksi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
-              <tr><td style="text-align:center;">a</td><td>Sumber Daya</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">b</td><td>Kompetensi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">c</td><td>Kepedulian</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">d</td><td>Komunikasi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">e</td><td>Informasi Terdokumentasi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">a</td><td>Sumber Daya</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">b</td><td>Kompetensi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">c</td><td>Kepedulian</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">d</td><td>Komunikasi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">e</td><td>Informasi Terdokumentasi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
 
               <tr style="font-weight:bold;"><td style="text-align:center;">4</td><td>Operasi Keselamatan Konstruksi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
-              <tr><td style="text-align:center;">a</td><td>Perencanaan dan Pengendalian Operasi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">b</td><td>Kesiapan dan Tanggapan Terhadap Kondisi Darurat</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">a</td><td>Perencanaan dan Pengendalian Operasi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">b</td><td>Kesiapan dan Tanggapan Terhadap Kondisi Darurat</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
 
               <tr style="font-weight:bold;"><td style="text-align:center;">5</td><td>Evaluasi Kinerja Keselamatan Konstruksi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
-              <tr><td style="text-align:center;">a</td><td>Pemantauan dan evaluasi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">b</td><td>Tinjauan manajemen</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
-              <tr><td style="text-align:center;">c</td><td>Peningkatan kinerja keselamatan konstruksi</td><td style="text-align:center;">${state.evalRkk}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">a</td><td>Pemantauan dan evaluasi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">b</td><td>Tinjauan manajemen</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
+              <tr><td style="text-align:center;">c</td><td>Peningkatan kinerja keselamatan konstruksi</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td></td><td></td></tr>
 
-              <tr style="font-weight:bold;"><td style="text-align:center;">6</td><td>Membuat Fakta Komitmen</td><td style="text-align:center;">${state.evalRkk}</td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
+              <tr style="font-weight:bold;"><td style="text-align:center;">6</td><td>Membuat Fakta Komitmen</td><td style="text-align:center;">${symPo(state.evalRkk)}</td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
               <tr style="font-weight:bold; background:#f3f4f6;"><td></td><td>Hasil Evaluasi</td><td></td><td style="text-align:center;">${state.evalRkk === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td><td></td></tr>
             </tbody>
           </table>
@@ -1619,7 +1884,7 @@ function buildAllDocuments() {
               <tr style="background:#f9fafb; font-weight:bold;">
                 <td style="text-align:center;">1</td>
                 <td colspan="6">${state.namaPerusahaan}</td>
-                <td style="text-align:center;">${state.evalPersonil}</td>
+                <td style="text-align:center;">${symPo(state.evalPersonil)}</td>
                 <td style="text-align:center;">${state.evalPersonil === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
                 <td></td>
               </tr>
@@ -1631,7 +1896,7 @@ function buildAllDocuments() {
                 <td>Pelaksana<br><small>Nama : ${state.namaPelaksana}</small></td>
                 <td style="text-align:center;">1 Tahun</td>
                 <td>${state.skkPelaksana}</td>
-                <td style="text-align:center;">${state.evalPersonil}</td>
+                <td style="text-align:center;">${symPo(state.evalPersonil)}</td>
                 <td style="text-align:center;">${state.evalPersonil === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
                 <td></td>
               </tr>
@@ -1643,7 +1908,7 @@ function buildAllDocuments() {
                 <td>Petugas K3<br><small>Nama : ${state.namaK3}</small></td>
                 <td style="text-align:center;">0 Tahun</td>
                 <td>${state.skkK3}</td>
-                <td style="text-align:center;">P</td>
+                <td style="text-align:center;">&#10003;</td>
                 <td style="text-align:center;">Memenuhi Syarat</td>
                 <td></td>
               </tr>
@@ -1654,7 +1919,7 @@ function buildAllDocuments() {
               <td style="width:55%;">
                 <strong>Catatan :</strong><br>
                 1. Penawaran yang tidak memenuhi syarat Teknis tidak dievaluasi lebih lanjut.<br>
-                2. Kolom 8 diisi : P = "Ya" jika sesuai | O = "Tidak " jika tidak sesuai
+                2. Kolom 8 diisi : &#10003; = "Ya" jika sesuai | &#10007; = "Tidak " jika tidak sesuai
               </td>
               <td style="width:45%; text-align:center;">
                 <div><strong>PEJABAT PENGADAAN</strong></div>
@@ -1866,9 +2131,9 @@ function buildAllDocuments() {
               <tr>
                 <td style="text-align:center;">1</td>
                 <td>${state.namaPerusahaan}</td>
-                <td style="text-align:center;">${state.evalAlat}</td>
-                <td style="text-align:center;">${state.evalPersonil}</td>
-                <td style="text-align:center;">${state.evalRkk}</td>
+                <td style="text-align:center;">${symPo(state.evalAlat)}</td>
+                <td style="text-align:center;">${symPo(state.evalPersonil)}</td>
+                <td style="text-align:center;">${symPo(state.evalRkk)}</td>
                 <td style="text-align:center;"><strong>${teknisHasil}</strong></td>
                 <td style="text-align:center;"><strong>${teknisKet}</strong></td>
               </tr>
@@ -1877,7 +2142,7 @@ function buildAllDocuments() {
           <div style="margin-top:12px;">
             <strong>Catatan :</strong><br>
             1. Penawaran yang tidak memenuhi syarat Teknis tidak dievaluasi lebih lanjut.<br>
-            2. Kolom 3 s/d 4 diisi : P = "Ya" jika sesuai | O = "Tidak " jika tidak sesuai
+            2. Kolom 3 s/d 4 diisi : &#10003; = "Ya" jika sesuai | &#10007; = "Tidak " jika tidak sesuai
           </div>
           ${ttdPejabatRightHtml()}
         </div>
@@ -2016,16 +2281,16 @@ function buildAllDocuments() {
               <tr><th style="width:35px;">No.</th><th>Pembuktian Dokumen Asli</th><th style="width:95px;">Hasil Pembuktian</th><th style="width:65px;">Ket</th></tr>
             </thead>
             <tbody>
-              <tr><td style="text-align:center;">1</td><td>Memiliki Izin Usaha ${state.kbli}</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">2</td><td>Memiliki Sertifikat Badan Usaha ${state.sbu}</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">3</td><td>TDP/NIB (Nomor Induk Berusaha) (Asli);</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">4</td><td>NPWP Perusahaan dan NPWP Pengurus (Asli);</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">5</td><td>KTP Daftar Pengurus Perusahaan dan Komisarisnya (Asli);</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">6</td><td>Memiliki Status Valid Keterangan Wajib Pajak berdasarkan hasil konfirmasi Status Wajib Pajak;</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">7</td><td>Memiliki akta pendirian perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">8</td><td>Kontrak-kontrak pengalaman perusahaan yang sejenis/sesuai dengan yang dipersyaratkan (Asli);</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">9</td><td>Memiliki Data Pemilik Manfaat/Bukti Lapor (Screenshoot)</td><td style="text-align:center;">P</td><td></td></tr>
-              <tr><td style="text-align:center;">10</td><td>Memenuhi Sisa Kemampuan Paket (SKP)</td><td style="text-align:center;">P</td><td></td></tr>
+              <tr><td style="text-align:center;">1</td><td>Memiliki Izin Usaha ${state.kbli}</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">2</td><td>Memiliki Sertifikat Badan Usaha ${state.sbu}</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">3</td><td>TDP/NIB (Nomor Induk Berusaha) (Asli);</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">4</td><td>NPWP Perusahaan dan NPWP Pengurus (Asli);</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">5</td><td>KTP Daftar Pengurus Perusahaan dan Komisarisnya (Asli);</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">6</td><td>Memiliki Status Valid Keterangan Wajib Pajak berdasarkan hasil konfirmasi Status Wajib Pajak;</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">7</td><td>Memiliki akta pendirian perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">8</td><td>Kontrak-kontrak pengalaman perusahaan yang sejenis/sesuai dengan yang dipersyaratkan (Asli);</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">9</td><td>Memiliki Data Pemilik Manfaat/Bukti Lapor (Screenshoot)</td><td style="text-align:center;">&#10003;</td><td></td></tr>
+              <tr><td style="text-align:center;">10</td><td>Memenuhi Sisa Kemampuan Paket (SKP)</td><td style="text-align:center;">&#10003;</td><td></td></tr>
               <tr><td style="text-align:center;">11</td><td>Membawa Surat Kuasa bagi yang diwakilkan...</td><td style="text-align:center;">-</td><td></td></tr>
               <tr style="font-weight:bold; background:#f3f4f6;"><td colspan="2" style="text-align:center;">KESIMPULAN</td><td colspan="2" style="text-align:center;">MEMENUHI</td></tr>
             </tbody>
@@ -2837,7 +3102,7 @@ function parseXmlToState(xmlStr) {
     });
   }
 
-  state.uploadedFlags = { hps: true, pen: true, jdw: true, sum: true, kual: true };
+  state.uploadedFlags = { hps: true, pen: true, jdw: true, kual: true, sum: true, dokmil: true };
 }
 
 function loadSavedDraft(e) {
@@ -2857,7 +3122,7 @@ function loadSavedDraft(e) {
         if (Array.isArray(savedState.items)) {
           state.items = savedState.items.map(x => ({ ...x }));
         }
-        state.uploadedFlags = { hps: true, pen: true, jdw: true, sum: true, kual: true };
+        state.uploadedFlags = { hps: true, pen: true, jdw: true, kual: true, sum: true, dokmil: true };
       } else {
         parseXmlToState(rawText);
       }
@@ -2875,7 +3140,6 @@ function loadSavedDraft(e) {
 }
 
 function resetAllInputsForFreshLoad() {
-  state.jenisKonstruksi = "";
   state._kbliManual = false;
   state._sbuManual = false;
 
@@ -2888,7 +3152,7 @@ function resetAllInputsForFreshLoad() {
   state.namaPerusahaan = "";
   state.npwp = "";
   state.namaPimpinan = "";
-  state.jabatanPimpinan = "";
+  state.jabatanPimpinan = "Direktur";
   state.alamatPerusahaan = "";
   state.aktaInfo = "";
 
@@ -2916,7 +3180,7 @@ function resetAllInputsForFreshLoad() {
     { key: "peng", label: "Pengumuman Pemenang", kode: "Pengumuman Pemenang", tgl: "", waktu: "" },
     { key: "bast", label: "BAST", kode: "BAST", tgl: "", waktu: "" }
   ];
-  state.uploadedFlags = { hps: false, pen: false, jdw: false, sum: false, kual: false };
+  state.uploadedFlags = { hps: false, pen: false, jdw: false, kual: false, sum: false, dokmil: false };
 }
 
 function restoreLocalStorageDraftOnLoad() {
@@ -2963,7 +3227,6 @@ function saveXml() {
   const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <evaluasiNonTender>
   <instansi>
-    <jenisKonstruksi>${escapeXml(state.jenisKonstruksi)}</jenisKonstruksi>
     <skpd>${escapeXml(state.skpd)}</skpd>
     <bpbj>${escapeXml(state.bpbj)}</bpbj>
     <daerah>${escapeXml(state.daerah)}</daerah>
@@ -3117,46 +3380,19 @@ const STEP_LABELS = {
 };
 
 
-const UPLOAD_SEQUENCE = ['hps', 'pen', 'jdw', 'kual', 'sum'];
+const UPLOAD_SEQUENCE = ['hps', 'pen', 'jdw', 'dokmil', 'kual', 'sum'];
 const UPLOAD_SLOT_NAMES = {
   hps: '1. Upload File HPS (.xlsx / .csv)',
   pen: '2. Upload Penawaran (.xlsx / .csv)',
   jdw: '3. Upload File Jadwal (.xlsx / .csv)',
-  kual: '4. Upload Kualifikasi SIKAP (.pdf)',
-  sum: '5. Upload Summary Report (.pdf)'
+  dokmil: '4. Upload Dokmil (.pdf)',
+  kual: '5. Upload Kualifikasi SIKAP (.pdf)',
+  sum: '6. Upload Summary Report (.pdf)'
 };
-
-function isJenisKonstruksiSelected() {
-  return Boolean(String(state.jenisKonstruksi || '').trim());
-}
-
-function updateJenisKonstruksiHighlight() {
-  const box = document.getElementById('jenis-konstruksi-box');
-  const sel = document.getElementById('jenisKonstruksi');
-  const warn = document.getElementById('jenis-konstruksi-warning');
-  const selected = isJenisKonstruksiSelected();
-  if (box) {
-    box.className = selected
-      ? 'mb-3 p-3 rounded-lg border border-emerald-300 bg-emerald-50/50 flex flex-wrap items-center justify-between gap-3'
-      : 'mb-3 p-3 rounded-lg border border-red-500 bg-red-50 flex flex-wrap items-center justify-between gap-3';
-  }
-  if (sel) {
-    sel.className = selected
-      ? 'border border-emerald-400 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500'
-      : 'border border-red-500 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500';
-  }
-  if (warn) {
-    warn.textContent = selected ? `Terpilih: ${state.jenisKonstruksi}` : 'Wajib dipilih (belum memilih)';
-    warn.className = selected
-      ? 'text-[10px] font-bold text-emerald-700 mt-1'
-      : 'text-[10px] font-bold text-red-600 mt-1';
-  }
-}
 
 function canUploadSlot(slotKey) {
   const idx = UPLOAD_SEQUENCE.indexOf(slotKey);
   if (idx < 0) return false;
-  if (!isJenisKonstruksiSelected()) return false;
   if (idx === 0) return true;
   const f = state.uploadedFlags || {};
   for (let i = 0; i < idx; i++) {
@@ -3177,22 +3413,6 @@ function guardUploadInputChange(slotKey, e) {
 
 function checkUploadStepAllowed(slotKey, ev) {
   if (canUploadSlot(slotKey)) return true;
-  if (!isJenisKonstruksiSelected()) {
-    const msg = 'Pilih Jenis Konstruksi (Urutan Pertama) terlebih dahulu sebelum mengunggah file.';
-    if (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
-    }
-    updateJenisKonstruksiHighlight();
-    const seqText = document.getElementById('upload-seq-text');
-    const seqBanner = document.getElementById('upload-seq-banner');
-    if (seqBanner && seqText) {
-      seqBanner.className = 'mb-3 px-3 py-1.5 rounded-lg border border-red-300 bg-red-50 text-red-700 text-[11px] font-semibold flex flex-wrap items-center justify-between gap-2';
-      seqText.textContent = msg;
-    }
-    alert(msg);
-    return false;
-  }
   const idx = UPLOAD_SEQUENCE.indexOf(slotKey);
   const prevKey = UPLOAD_SEQUENCE[idx - 1];
   const msg = `Upload harus berurutan! Selesaikan "${UPLOAD_SLOT_NAMES[prevKey]}" terlebih dahulu sebelum mengunggah "${UPLOAD_SLOT_NAMES[slotKey]}".`;
@@ -3244,7 +3464,7 @@ function updateUploadSequenceUi() {
   if (seqBanner && seqText) {
     if (doneCount === UPLOAD_SEQUENCE.length) {
       seqBanner.className = 'mb-3 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-semibold flex flex-wrap items-center justify-between gap-2';
-      seqText.textContent = 'Seluruh 5 file Upload Data telah diunggah berurutan.';
+      seqText.textContent = 'Seluruh 6 file Upload Data telah diunggah berurutan.';
     } else if (nextSlot) {
       seqBanner.className = 'mb-3 px-3 py-1.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-900 text-[11px] font-semibold flex flex-wrap items-center justify-between gap-2';
       seqText.textContent = `Urutan Upload aktif: lanjutkan ke ${UPLOAD_SLOT_NAMES[nextSlot]}.`;
@@ -3327,7 +3547,7 @@ function updateStepGuardUi(blockedMsg = null) {
     textEl.textContent = 'Anda berada di tahap Pratinjau & Cetak 20 Sheet. Klik tombol di kanan untuk mengunduh semua dokumen PDF.';
   } else if (!hasAnyUploadedFile()) {
     banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
-    textEl.textContent = 'Tahap Upload belum lengkap: unggah file secara berurutan (1. HPS -> 2. Penawaran -> 3. Jadwal -> 4. Kualifikasi SIKAP PDF -> 5. Summary PDF).';
+    textEl.textContent = 'Tahap Upload belum lengkap: unggah file secara berurutan (1. HPS -> 2. Penawaran -> 3. Jadwal -> 4. Dokmil PDF -> 5. Kualifikasi SIKAP PDF -> 6. Summary PDF).';
   } else {
     banner.className = 'mb-3 px-3.5 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 text-xs font-semibold flex flex-wrap items-center justify-between gap-2';
     textEl.textContent = 'Tahap Upload terpenuhi. Silakan lanjutkan pengisian tahap Edit secara berurutan.';
@@ -3509,8 +3729,11 @@ function clearUploadData() {
     pen: 'Pilih rincian penawaran...',
     jdw: 'Pilih jadwal.xlsx...',
     kual: 'Pilih PDF Kualifikasi...',
-    sum: 'Pilih PDF Summary Report...'
+    sum: 'Pilih PDF Summary Report...',
+    dokmil: 'Pilih PDF Dokmil...'
   };
+  const bulkInp = document.getElementById('inp-bulk-folder');
+  if (bulkInp) bulkInp.value = '';
   UPLOAD_SEQUENCE.forEach((key) => {
     const inp = document.getElementById('inp-' + key);
     if (inp) inp.value = '';
@@ -3532,7 +3755,8 @@ const EXAMPLE_DRIVE_URLS = {
   pen: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
   jdw: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
   kual: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
-  sum: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link"
+  sum: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link",
+  dokmil: "https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link"
 };
 
 function getCurrentExampleDriveUrl() {
@@ -3562,41 +3786,99 @@ function autoFillPimpinanDanJabatan() {
   }
 }
 
+
+const SKK_PRESETS_BY_KBLI = {
+  "42201": {
+    pelaksana: [
+      "Pelaksana Lapangan Pekerjaan Saluran Irigasi",
+      "Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya"
+    ],
+    k3: [
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
+    ]
+  },
+  "42101": {
+    pelaksana: [
+      "Pelaksana Lapangan Pekerjaan Jalan",
+      "Pelaksana Lapangan Pekerjaan Jalan Madya"
+    ],
+    k3: [
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
+    ]
+  },
+  "41019": {
+    pelaksana: [
+      "Pelaksana Lapangan Pekerjaan Gedung",
+      "Pelaksana Lapangan Pekerjaan Gedung Madya"
+    ],
+    k3: [
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
+    ]
+  }
+};
+
+function detectKbliOrSbuCode() {
+  const kbliStr = String(state.kbli || "");
+  const sbuStr = String(state.sbu || "");
+  const mKbli = kbliStr.match(/\b(42201|42101|41019)\b/);
+  if (mKbli) return mKbli[1];
+  if (/\bBS004\b/i.test(sbuStr) || /irigasi|drainase/i.test(kbliStr + " " + sbuStr)) return "42201";
+  if (/\bBS001\b/i.test(sbuStr) || /\bjalan\b/i.test(kbliStr + " " + sbuStr)) return "42101";
+  if (/\bBG009\b/i.test(sbuStr) || /\bgedung\b/i.test(kbliStr + " " + sbuStr)) return "41019";
+  return "42201";
+}
+
+function resolveDokmilK3Option(rawK3, baseOptions) {
+  const clean = String(rawK3 || "").replace(/\s+/g, " ").trim();
+  if (!clean) return null;
+  if (/madya/i.test(clean)) {
+    const madyaOpt = baseOptions.find(o => /madya/i.test(o));
+    if (madyaOpt) return madyaOpt;
+  }
+  if (/muda|dasar|jenjang\s*1/i.test(clean) || /^petugas\s+k3$/i.test(clean) || /^skk\s+petugas\s+k3$/i.test(clean)) {
+    return baseOptions[baseOptions.length - 1];
+  }
+  const exact = baseOptions.find(o => o.toLowerCase() === clean.toLowerCase());
+  return exact || clean;
+}
+
+function syncSkkWithIzinAndSbu() {
+  const code = detectKbliOrSbuCode();
+  const preset = SKK_PRESETS_BY_KBLI[code] || SKK_PRESETS_BY_KBLI["42201"];
+
+  const selPel = document.getElementById("skkPelaksana");
+  if (selPel) {
+    const prevVal = state._skkPelaksanaManual ? state.skkPelaksana : preset.pelaksana[0];
+    selPel.innerHTML = preset.pelaksana
+      .map((optVal, i) => `<option value="${optVal}"${optVal === prevVal || (!preset.pelaksana.includes(prevVal) && i === 0) ? " selected" : ""}>${optVal}</option>`)
+      .join("");
+    state.skkPelaksana = selPel.value;
+  }
+
+  const selK3 = document.getElementById("skkK3");
+  if (selK3) {
+    const lowestJenjangK3 = preset.k3[preset.k3.length - 1];
+    const dokmilMappedK3 = state._skkK3FromDokmil ? resolveDokmilK3Option(state.skkK3, preset.k3) : null;
+    const optionsList = [...preset.k3];
+    if (dokmilMappedK3 && !optionsList.includes(dokmilMappedK3)) {
+      optionsList.push(dokmilMappedK3);
+    }
+    const targetK3 = dokmilMappedK3 || (state._skkK3Manual ? state.skkK3 : lowestJenjangK3);
+    selK3.innerHTML = optionsList
+      .map((optVal, i) => `<option value="${optVal}"${optVal === targetK3 || (!optionsList.includes(targetK3) && i === optionsList.length - 1) ? " selected" : ""}>${optVal}</option>`)
+      .join("");
+    state.skkK3 = selK3.value;
+  }
+}
+
 function syncAll() {
   readFormInputs();
   autoFillPimpinanDanJabatan();
-  updateJenisKonstruksiHighlight();
-  const kbliEl = document.getElementById('kbli');
-  const sbuEl = document.getElementById('sbu');
-  const jkLower = String(state.jenisKonstruksi || '').toLowerCase();
-  if (jkLower.includes('jalan')) {
-    if (kbliEl && !state._kbliManual) {
-      state.kbli = "KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah";
-      kbliEl.value = "KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah";
-    }
-    if (sbuEl && !state._sbuManual) {
-      state.sbu = "BS001 - Konstruksi Bangunan Sipil Jalan";
-      sbuEl.value = "BS001 - Konstruksi Bangunan Sipil Jalan";
-    }
-  } else if (jkLower.includes('drainase')) {
-    if (kbliEl && !state._kbliManual) {
-      state.kbli = "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase";
-      kbliEl.value = "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase";
-    }
-    if (sbuEl && !state._sbuManual) {
-      state.sbu = "BS004 - Konstruksi Jaringan dan Drainase";
-      sbuEl.value = "BS004 - Konstruksi Jaringan dan Drainase";
-    }
-  } else if (jkLower.includes('gedung')) {
-    if (kbliEl && !state._kbliManual) {
-      state.kbli = "KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya";
-      kbliEl.value = "KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya";
-    }
-    if (sbuEl && !state._sbuManual) {
-      state.sbu = "BG009 - Konstruksi Bangunan Gedung Lainnya";
-      sbuEl.value = "BG009 - Konstruksi Bangunan Gedung Lainnya";
-    }
-  }
+  syncSkkWithIzinAndSbu();
+
   const kpEl = document.getElementById('kpVal');
   if (String(state.kualifikasiUsaha || '').toLowerCase().includes('kecil') && kpEl && kpEl.value === '') {
     state.kpVal = 5;
