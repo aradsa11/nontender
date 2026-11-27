@@ -64,11 +64,11 @@
 
   @page {
     size: A4 portrait;
-    margin: 0;
+    margin: 10mm 12mm 10mm 12mm;
   }
   @page print-landscape {
     size: A4 landscape;
-    margin: 0;
+    margin: 8mm 10mm 8mm 10mm;
   }
   .print-page-portrait {
     page: auto;
@@ -100,18 +100,41 @@
     .paper-a4 {
       box-shadow: none !important;
       margin: 0 !important;
-      width: 210mm !important;
-      min-height: 297mm !important;
-      padding: 14mm 16mm !important;
+      width: 100% !important;
+      max-width: 186mm !important;
+      min-height: auto !important;
+      height: auto !important;
+      padding: 4mm 2mm !important;
       box-sizing: border-box !important;
-      page-break-inside: avoid;
-      break-inside: avoid;
+      overflow: visible !important;
+      page-break-inside: auto;
+      break-inside: auto;
     }
     .paper-a4.landscape {
-      width: 297mm !important;
-      min-height: 210mm !important;
-      padding: 10mm 12mm !important;
+      width: 100% !important;
+      max-width: 277mm !important;
+      min-height: auto !important;
+      height: auto !important;
+      padding: 3mm 2mm !important;
       box-sizing: border-box !important;
+      overflow: visible !important;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    .paper-a4 thead {
+      display: table-header-group;
+    }
+    .paper-a4 tr,
+    .paper-a4 p,
+    .paper-a4 .kop-surat {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .paper-a4 table {
+      page-break-inside: auto;
+      break-inside: auto;
     }
   }
 </style>
@@ -123,7 +146,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div>
-          <h1 class="text-sm sm:text-base font-bold leading-tight">Evaluasi Non-Tender Konstruksi Drainase</h1>
+          <h1 class="text-sm sm:text-base font-bold leading-tight">Evaluasi Non-Tender Konstruksi</h1>
           <p class="text-xs text-slate-400">20 Dokumen Lengkap: Cover, BAPP, Evaluasi Adm/Kual/Peralatan/RKK/Personil, SKP, Aritmatik, Wajar Harga, Und-Nego, Pembuktian, Daftar Hadir, Verifikasi, BAEP, Negoisasi, BAHN, BAHP, Penetapan, Pengumuman & BAST</p>
         </div>
       </div>
@@ -1167,20 +1190,14 @@ async function processDokmilPdfFile(file) {
   if (mPelaksana && mPelaksana[1]) {
     state.skkPelaksana = mPelaksana[1].replace(/\s+/g, ' ').trim();
   }
-  const mK3 = text.match(/Petugas\s+K3(?:\s+\d+\s*Tahun)?\s*:?\s*((?:SKK\s+)?[A-Za-z0-9\s\-\/.,()]+?)(?=\s+(?:\[diisi|Keterangan|Sertifikat|10\.|11\.|Dokumen)|$)/i)
+  const mK3 = text.match(/Petugas\s+K3(?:\s+\d+\s*Tahun)?\s*:?\s*((?:SKK\s+)?[A-Za-z0-9\s\-\/.,()]+?)(?=\s+(?:\[diisi|Keterangan|Sertifikat|10\.|11\.|Dokumen|yang\s+memiliki)|$)/i)
     || text.match(/(?:SKK\s+)?(?:Petugas\s+(?:Keselamatan\s+dan\s+Kesehatan\s+Kerja|K3)\s*(?:Konstruksi)?(?:\s+(?:Muda|Madya|Utama))?)/i);
-  if (mK3 && mK3[1]) {
-    const extractedK3 = mK3[1].replace(/\s+/g, ' ').trim();
-    if (extractedK3 && !/^0\s*Tahun$/i.test(extractedK3)) {
-      state.skkK3 = extractedK3;
-      state._skkK3FromDokmil = true;
-    }
-  } else if (mK3 && mK3[0]) {
-    const extractedK3 = mK3[0].replace(/\s+/g, ' ').trim();
-    if (extractedK3) {
-      state.skkK3 = extractedK3;
-      state._skkK3FromDokmil = true;
-    }
+  const rawCandidateK3 = (mK3 && (mK3[1] || mK3[0])) ? String(mK3[1] || mK3[0]).replace(/\s+/g, ' ').trim() : "";
+  if (rawCandidateK3 && !/^0\s*Tahun$/i.test(rawCandidateK3) && !/konstruksi\s+yang\s+memiliki/i.test(rawCandidateK3) && !/^konstruksi\s+yang/i.test(rawCandidateK3)) {
+    state.skkK3 = rawCandidateK3;
+    state._skkK3FromDokmil = true;
+  } else {
+    state._skkK3FromDokmil = false;
   }
 
   populateFormInputs();
@@ -2839,7 +2856,7 @@ function exportWord() {
   const wordHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
 <meta charset="UTF-8">
-<title>Evaluasi Non-Tender Konstruksi Drainase (20 Dokumen)</title>
+<title>Evaluasi Non-Tender Konstruksi (20 Dokumen)</title>
 <!--[if gte mso 9]>
 <xml>
   <w:WordDocument>
@@ -3836,9 +3853,15 @@ function detectKbliOrSbuCode() {
   return "42201";
 }
 
+function isInvalidK3Fragment(val) {
+  const s = String(val || "").replace(/\s+/g, " ").trim();
+  if (!s) return true;
+  return /konstruksi\s+yang\s+memiliki/i.test(s) || /^konstruksi\s+yang/i.test(s) || /^yang\s+memiliki/i.test(s);
+}
+
 function resolveDokmilK3Option(rawK3, baseOptions) {
   const clean = String(rawK3 || "").replace(/\s+/g, " ").trim();
-  if (!clean) return null;
+  if (!clean || isInvalidK3Fragment(clean)) return null;
   if (/madya/i.test(clean)) {
     const madyaOpt = baseOptions.find(o => /madya/i.test(o));
     if (madyaOpt) return madyaOpt;
@@ -3847,7 +3870,7 @@ function resolveDokmilK3Option(rawK3, baseOptions) {
     return baseOptions[baseOptions.length - 1];
   }
   const exact = baseOptions.find(o => o.toLowerCase() === clean.toLowerCase());
-  return exact || clean;
+  return exact || null;
 }
 
 function syncSkkWithIzinAndSbu() {
@@ -3866,12 +3889,13 @@ function syncSkkWithIzinAndSbu() {
   const selK3 = document.getElementById("skkK3");
   if (selK3) {
     const lowestLevelK3 = preset.k3[preset.k3.length - 1];
-    const dokmilMappedK3 = state._skkK3FromDokmil ? resolveDokmilK3Option(state.skkK3, preset.k3) : null;
-    const optionsList = [...preset.k3];
-    if (dokmilMappedK3 && !optionsList.includes(dokmilMappedK3)) {
-      optionsList.push(dokmilMappedK3);
+    if (isInvalidK3Fragment(state.skkK3)) {
+      state.skkK3 = lowestLevelK3;
+      state._skkK3FromDokmil = false;
     }
-    const candidateK3 = dokmilMappedK3 || (state._skkK3Manual ? state.skkK3 : lowestLevelK3);
+    const dokmilMappedK3 = state._skkK3FromDokmil ? resolveDokmilK3Option(state.skkK3, preset.k3) : null;
+    const optionsList = preset.k3.filter(optVal => !isInvalidK3Fragment(optVal));
+    const candidateK3 = dokmilMappedK3 || (state._skkK3Manual && !isInvalidK3Fragment(state.skkK3) ? state.skkK3 : lowestLevelK3);
     const targetK3 = optionsList.includes(candidateK3) ? candidateK3 : lowestLevelK3;
     selK3.innerHTML = optionsList
       .map((optVal) => `<option value="${optVal}"${optVal === targetK3 ? " selected" : ""}>${optVal}</option>`)
