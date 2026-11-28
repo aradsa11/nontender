@@ -32,22 +32,36 @@
     font-size: 8.5pt;
   }
   .kop-surat {
-    display: flex;
+    display: grid;
+    grid-template-columns: 68px 1fr;
     align-items: center;
-    gap: 12px;
+    column-gap: 12px;
+    width: 100%;
+    border-top: none;
+    border-left: none;
+    border-right: none;
     border-bottom: 3.5px solid #000;
-    box-shadow: 0 2px 0 #000;
+    box-shadow: none;
+    outline: none;
     padding-bottom: 6px;
     margin-bottom: 14px;
+  }
+  .kop-surat *,
+  .kop-surat *::before,
+  .kop-surat *::after {
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+    column-rule: none !important;
   }
   .kop-surat .kop-logo {
     width: 68px;
     height: auto;
-    flex-shrink: 0;
+    display: block;
     object-fit: contain;
   }
   .kop-surat .kop-text {
-    flex: 1;
+    width: 100%;
     text-align: center;
     line-height: 1.15;
   }
@@ -141,6 +155,15 @@
     }
     .paper-a4 tr,
     .paper-a4 p,
+    .kop-surat,
+    .kop-surat *,
+    .kop-surat *::before,
+    .kop-surat *::after {
+      box-shadow: none !important;
+      outline: none !important;
+      border-left: none !important;
+      border-right: none !important;
+    }
     .paper-a4 .kop-surat {
       page-break-inside: avoid;
       break-inside: avoid;
@@ -150,6 +173,21 @@
     .paper-a4 table {
       page-break-inside: auto;
       break-inside: auto;
+    }
+    .paper-a4 tr,
+    .paper-a4 .no-break-block {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .paper-a4 .no-border-table:last-child,
+    .paper-a4 .kt-sign-table,
+    .kt-nego-sheet .kt-sign-table,
+    .kt-nego-sheet .kt-sign-table tr,
+    .kt-nego-sheet .kt-sign-table td {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      page-break-before: avoid;
+      break-before: avoid;
     }
   }
 </style>
@@ -393,20 +431,21 @@
               <select id="kbli" class="w-full mt-1 border rounded px-2.5 py-1.5 bg-white" onchange="state._kbliManual = true; syncAll()">
                 <option value="KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase">KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase</option>
                 <option value="KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah">KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah</option>
+                <option value="KBLI 2020 - 42010 Konstruksi Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42010 Konstruksi Jalan">KBLI 2020 - 42010 Konstruksi Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42010 Konstruksi Jalan</option>
                 <option value="KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya">KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya</option>
               </select>
             </div>
             <div class="sm:col-span-2">
               <label class="font-semibold text-slate-600">SBU (Sertifikat Badan Usaha)</label>
               <select id="sbu" class="w-full mt-1 border rounded px-2.5 py-1.5 bg-white" onchange="state._sbuManual = true; syncAll()">
-                <option value="BS004 - Konstruksi Jaringan dan Drainase">BS004 - Konstruksi Jaringan dan Drainase</option>
+                <option value="BS004 - Kontruksi Jaringan Irigasi dan drainase">BS004 - Kontruksi Jaringan Irigasi dan drainase</option>
                 <option value="BS001 - Konstruksi Bangunan Sipil Jalan">BS001 - Konstruksi Bangunan Sipil Jalan</option>
                 <option value="BG009 - Konstruksi Bangunan Gedung Lainnya">BG009 - Konstruksi Bangunan Gedung Lainnya</option>
               </select>
             </div>
             <div class="sm:col-span-2">
-              <label class="font-semibold text-slate-600">Keterangan Akta Pendirian</label>
-              <input id="aktaInfo" type="text" class="w-full mt-1 border rounded px-2.5 py-1.5" oninput="syncAll()">
+              <label id="lbl-akta-info" class="font-semibold text-slate-600">Keterangan Akta Pendirian</label>
+              <input id="aktaInfo" type="text" class="w-full mt-1 border rounded px-2.5 py-1.5" oninput="handleAktaInfoInput()">
             </div>
           </div>
         </div>
@@ -569,27 +608,42 @@
                 </select>
               </div>
             </div>
-            <div>
-              <label class="font-semibold text-slate-600">Nama Pelaksana</label>
-              <input id="namaPelaksana" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="syncAll()">
+            <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t">
+              <div>
+                <label class="font-semibold text-slate-600">Nama Pelaksana</label>
+                <input id="namaPelaksana" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="syncAll()">
+              </div>
+              <div>
+                <label class="font-semibold text-slate-600">Nama Petugas K3</label>
+                <input id="namaK3" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="syncAll()">
+              </div>
             </div>
-            <div>
-              <label class="font-semibold text-slate-600">SKK Pelaksana</label>
-              <select id="skkPelaksana" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="state._skkPelaksanaManual = true; syncAll()">
-                <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi" selected>Pelaksana Lapangan Pekerjaan Saluran Irigasi</option>
-                <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya">Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-semibold text-slate-600">Nama Petugas K3</label>
-              <input id="namaK3" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="syncAll()">
-            </div>
-            <div>
-              <label class="font-semibold text-slate-600">SKK Petugas K3</label>
-              <select id="skkK3" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="state._skkK3Manual = true; state._skkK3FromDokmil = false; syncAll()">
-                <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya">Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya</option>
-                <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi" selected>Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi</option>
-              </select>
+            <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="font-semibold text-slate-600">SKK Pelaksana</label>
+                <div class="grid grid-cols-1 gap-1.5 mt-1">
+                  <select id="skkPelaksana" class="w-full border rounded px-2 py-1.5 bg-white" onchange="handleManualSkkSelect('pelaksana', this.value)">
+                    <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi" selected>Pelaksana Lapangan Pekerjaan Saluran Irigasi</option>
+                    <option value="Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya">Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya</option>
+                  </select>
+                  <input id="skkPelaksanaManual" type="text" placeholder="SKK Pelaksana..." class="w-full border rounded px-2 py-1.5 bg-white" oninput="handleManualSkkInput('pelaksana', this.value)">
+                </div>
+              </div>
+              <div>
+                <label class="font-semibold text-slate-600">SKK Petugas K3</label>
+                <div class="grid grid-cols-1 gap-1.5 mt-1">
+                  <select id="skkK3" class="w-full border rounded px-2 py-1.5 bg-white" onchange="handleManualSkkSelect('k3', this.value)">
+                    <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya">Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya</option>
+                    <option value="Petugas Keselamatan Konstruksi">Petugas Keselamatan Konstruksi</option>
+                    <option value="Supervisor K3 Konstruksi">Supervisor K3 Konstruksi</option>
+                    <option value="Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi">Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi</option>
+                    <option value="Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi">Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi</option>
+                    <option value="Ahli Muda Keselamatan Konstruksi">Ahli Muda Keselamatan Konstruksi</option>
+                    <option value="Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi" selected>Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi</option>
+                  </select>
+                  <input id="skkK3Manual" type="text" placeholder="SKK Petugas K3..." class="w-full border rounded px-2 py-1.5 bg-white" oninput="handleManualSkkInput('k3', this.value)">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -640,7 +694,7 @@ const state = {
   jabatanPimpinan: "Direktur",
   alamatPerusahaan: "",
   kbli: "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase",
-  sbu: "BS004 - Konstruksi Jaringan dan Drainase",
+  sbu: "BS004 - Kontruksi Jaringan Irigasi dan drainase",
   aktaInfo: "",
   nomorSuratAngka: "0000",
   prefixSurat: "T-000.3.2/0000/",
@@ -1072,8 +1126,16 @@ async function processKualifikasiPdfFile(file) {
   if (mNpwp) state.npwp = mNpwp[1].replace(/[^0-9]/g, '').trim();
   const mAlamat = text.match(/Alamat\s*:?\s*(.+?)\s+(?:Telp|Kode\s*Pos|Provinsi|Kabupaten)/i);
   if (mAlamat) state.alamatPerusahaan = mAlamat[1].trim();
-  const mAkta = text.match(/Akta Pendirian\s+Nomor\s+(\d+)\s+Tanggal Surat\s+(.+?)\s+Notaris/i);
-  if (mAkta) state.aktaInfo = `AKTA NO. ${mAkta[1]} TGL ${mAkta[2].trim().toUpperCase()}`;
+  const mAktaPerubahan = text.match(/Akta\s+Perubahan(?:\s+Terakhir)?\s+Nomor\s+([A-Za-z0-9\-\/]+)\s+Tanggal(?:\s+Surat)?\s+(.+?)(?=\s+Notaris|\s+Keterangan|$)/i)
+    || text.match(/Perubahan\s+Akta\s+Nomor\s+([A-Za-z0-9\-\/]+)\s+Tanggal(?:\s+Surat)?\s+(.+?)(?=\s+Notaris|\s+Keterangan|$)/i);
+  const mAkta = text.match(/Akta\s+(?:Pendirian|Perubahan)\s+Nomor\s+(\d+)\s+Tanggal Surat\s+(.+?)\s+Notaris/i);
+  if (mAktaPerubahan) {
+    state._aktaPerubahanActive = true;
+    state.aktaInfo = `AKTA PERUBAHAN NO. ${mAktaPerubahan[1].trim().toUpperCase()} TGL ${mAktaPerubahan[2].trim().toUpperCase()}`;
+  } else if (mAkta) {
+    state._aktaPerubahanActive = false;
+    state.aktaInfo = `AKTA NO. ${mAkta[1]} TGL ${mAkta[2].trim().toUpperCase()}`;
+  }
 
   const mPengurus = text.match(/Manajerial\s+Nama\s+KTP\s+Alamat\s+NPWP\s+Tanggal Mulai Menjabat\s+Tanggal Akhir Menjabat\s+Status\s+([A-Za-z.,'\-\s]+?)\s+\d{14,20}/i)
     || text.match(/(?:Direktur(?:\s+Utama)?|Pimpinan|Penanggung\s*Jawab)\s*:?\s*([A-Z][A-Za-z.,'\-\s]{2,60}?)(?=\s+(?:NIK|KTP|NPWP|Alamat|Jabatan|Status|Tanggal))/i);
@@ -1152,7 +1214,7 @@ async function processDokmilPdfFile(file) {
   const dokmilKbliSectionMatch = text.match(/(?:1\.\s*Memiliki\s+Izin\s+Usaha|Memiliki\s+Izin\s+Usaha|KBLI)([\s\S]{0,450}?)(?=2\.\s*Memiliki\s+Sertifikat\s+Badan\s+Usaha|Memiliki\s+Sertifikat\s+Badan\s+Usaha|$)/i);
   const kbliSearchScope = dokmilKbliSectionMatch ? dokmilKbliSectionMatch[1] : text;
   const mKbli = kbliSearchScope.match(/KBLI\s*(?:\(?2020\)?|\(?2025\)?)?\s*[:\-]?\s*(\d{5})\s*([\s\S]*?)(?=\s+(?:atau\s+KBLI|2\.\s*Memiliki|Sertifikat\s+Standar)|$)/i)
-    || kbliSearchScope.match(/\b(42201|42101|41019)\b([\s\S]{0,160}?)(?=\s+(?:atau\s+KBLI|2\.\s*Memiliki)|$)/i)
+    || kbliSearchScope.match(/\b(42201|42101|42010|41019)\b([\s\S]{0,160}?)(?=\s+(?:atau\s+KBLI|2\.\s*Memiliki)|$)/i)
     || text.match(/KBLI\s*(?:\(?2020\)?|\(?2025\)?)?\s*[:\-]?\s*(\d{5})\s*([^\r\n]+)/i);
   if (mKbli) {
     const kodeKbli = mKbli[1].trim();
@@ -1161,6 +1223,8 @@ async function processDokmilPdfFile(file) {
       state.kbli = "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase";
     } else if (kodeKbli === "42101") {
       state.kbli = "KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah";
+    } else if (kodeKbli === "42010") {
+      state.kbli = "KBLI 2020 - 42010 Konstruksi Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42010 Konstruksi Jalan";
     } else if (kodeKbli === "41019") {
       state.kbli = "KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya";
     } else {
@@ -1175,7 +1239,7 @@ async function processDokmilPdfFile(file) {
     const kodeSbu = mSbu[1].replace(/\s+/g, '');
     const namaSbu = mSbu[2].replace(/\s+/g, ' ').trim();
     if (kodeSbu === "BS004") {
-      state.sbu = "BS004 - Konstruksi Jaringan dan Drainase";
+      state.sbu = "BS004 - Kontruksi Jaringan Irigasi dan drainase";
     } else if (kodeSbu === "BS001") {
       state.sbu = "BS001 - Konstruksi Bangunan Sipil Jalan";
     } else if (kodeSbu === "BG009") {
@@ -1730,7 +1794,7 @@ function buildAllDocuments() {
                 <th>Memiliki Izin Usaha ${state.kbli}</th>
                 <th>Memiliki Sertifikat Badan Usaha ${state.sbu}</th>
                 <th>Memiliki TDP atau NIB</th>
-                <th>Memiliki akta pendirian perusahaan dan akta perubahan perusahaan (apabila ada perubahan)</th>
+                <th>Memiliki akta perubahan perusahaan dan akta perubahan perusahaan (apabila ada perubahan)</th>
                 <th>Memiliki status valid keterangan Wajib Pajak berdasarkan hasil Konfirmasi Status Wajib Pajak [Valid/Tidak Valid]</th>
                 <th>Memiliki pengalaman pekerjaan sesuai dengan subklasifikasi SBU yang disyaratkan paling kurang 1 pekerjaan dalam kurun waktu 4 tahun terakhir</th>
                 <th>Tidak dalam pengawasan pengadilan, tidak bangkrut, kegiatan usahanya tidak sedang dihentikan / tidak masuk Daftar Hitam</th>
@@ -2257,11 +2321,11 @@ function buildAllDocuments() {
             <tr><td>4.</td><td>NPWP Perusahaan dan NPWP Pengurus (Asli);</td></tr>
             <tr><td>5.</td><td>KTP Daftar Pengurus Perusahaan dan Komisarisnya (Asli);</td></tr>
             <tr><td>6.</td><td>Memiliki Status Valid Keterangan Wajib Pajak berdasarkan hasil konfirmasi Status Wajib Pajak;</td></tr>
-            <tr><td>7.</td><td>Memiliki akta pendirian perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td></tr>
+            <tr><td>7.</td><td>Memiliki akta perubahan perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td></tr>
             <tr><td>8.</td><td>Kontrak-kontrak pengalaman perusahaan yang sejenis/sesuai dengan yang dipersyaratkan (Asli);</td></tr>
             <tr><td>9.</td><td>Memiliki Data Pemilik Manfaat/Bukti Lapor (Screenshoot);</td></tr>
             <tr><td>10.</td><td>Memenuhi Sisa Kemampuan Paket (SKP);</td></tr>
-            <tr><td>11.</td><td>Membawa Surat Kuasa bagi yang diwakilkan, yang nama pemberi kuasa tercantum dalam Akta Pendirian / Perubahan Perusahaan dan ditandatangani oleh kedua belah pihak yang berwenang Memberi Kuasa dan yang Menerima Kuasa, di atas kertas Kop Perusahaan dan bermaterai cukup;</td></tr>
+            <tr><td>11.</td><td>Membawa Surat Kuasa bagi yang diwakilkan, yang nama pemberi kuasa tercantum dalam Akta Perubahan / Perubahan Perusahaan dan ditandatangani oleh kedua belah pihak yang berwenang Memberi Kuasa dan yang Menerima Kuasa, di atas kertas Kop Perusahaan dan bermaterai cukup;</td></tr>
           </table>
           <p style="margin-top:8px;">Adapun hasil pembuktian kualifikasi terlampir.<br>Demikian Berita Acara ini dibuat dengan sebenarnya, atas perhatiannya diucapkan terima kasih.</p>
           ${ttdPejabatRightHtml()}
@@ -2323,7 +2387,7 @@ function buildAllDocuments() {
               <tr><td style="text-align:center;">4</td><td>NPWP Perusahaan dan NPWP Pengurus (Asli);</td><td style="text-align:center;"></td><td></td></tr>
               <tr><td style="text-align:center;">5</td><td>KTP Daftar Pengurus Perusahaan dan Komisarisnya (Asli);</td><td style="text-align:center;"></td><td></td></tr>
               <tr><td style="text-align:center;">6</td><td>Memiliki Status Valid Keterangan Wajib Pajak berdasarkan hasil konfirmasi Status Wajib Pajak;</td><td style="text-align:center;"></td><td></td></tr>
-              <tr><td style="text-align:center;">7</td><td>Memiliki akta pendirian perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td><td style="text-align:center;"></td><td></td></tr>
+              <tr><td style="text-align:center;">7</td><td>Memiliki akta perubahan perusahaan dan akta perubahan perusahaan (apabila ada perubahan);</td><td style="text-align:center;"></td><td></td></tr>
               <tr><td style="text-align:center;">8</td><td>Kontrak-kontrak pengalaman perusahaan yang sejenis/sesuai dengan yang dipersyaratkan (Asli);</td><td style="text-align:center;"></td><td></td></tr>
               <tr><td style="text-align:center;">9</td><td>Memiliki Data Pemilik Manfaat/Bukti Lapor (Screenshoot)</td><td style="text-align:center;"></td><td></td></tr>
               <tr><td style="text-align:center;">10</td><td>Memenuhi Sisa Kemampuan Paket (SKP)</td><td style="text-align:center;"></td><td></td></tr>
@@ -2460,78 +2524,82 @@ function buildAllDocuments() {
           </table>
         </div>
 
-        <div class="paper-a4 landscape">
-          <div style="text-align:center; font-weight:bold; font-size:11pt; margin-bottom:6px;">KLARIFIKASI TEKNIS DAN NEGOISASI PENAWARAN HARGA</div>
-          <table class="no-border-table" style="width:100%; margin-bottom:6px; font-size:8.5pt;">
-            <tr><td style="width:100px;">KEGIATAN</td><td style="width:10px;">:</td><td>${state.kegiatan}</td><td style="width:100px;">PAGU DANA</td><td style="width:10px;">:</td><td>${fmtRp(state.nilaiPagu)}</td></tr>
+        <div class="paper-a4 landscape kt-nego-sheet" style="padding: 8.5mm 10.5mm; font-size: 7.8pt; line-height: 1.18;">
+          <div class="kt-sheet-header" style="text-align:center; font-weight:bold; font-size:10.5pt; margin-bottom:4px;">KLARIFIKASI TEKNIS DAN NEGOISASI PENAWARAN HARGA</div>
+          <table class="no-border-table kt-meta-table" style="width:100%; margin-bottom:4px; font-size:7.8pt; line-height:1.15;">
+            <tr><td style="width:90px;">KEGIATAN</td><td style="width:8px;">:</td><td>${state.kegiatan}</td><td style="width:85px;">PAGU DANA</td><td style="width:8px;">:</td><td>${fmtRp(state.nilaiPagu)}</td></tr>
             <tr><td>PAKET</td><td>:</td><td>${state.pekerjaan}</td><td>HPS</td><td>:</td><td>${fmtRp(state.nilaiHps)}</td></tr>
             <tr><td>PENYEDIA</td><td>:</td><td colspan="4"><strong>${state.namaPerusahaan}</strong></td></tr>
           </table>
-          <table class="doc-table" style="font-size:7pt;">
+          <table class="doc-table kt-main-table" style="font-size:6.8pt; line-height:1.15; margin-top:3px; margin-bottom:6px;">
             <thead>
               <tr>
-                <th rowspan="2" style="width:24px;">NO</th>
-                <th rowspan="2">URAIAN</th>
-                <th rowspan="2" style="width:38px;">Vol</th>
-                <th rowspan="2" style="width:36px;">Sat</th>
-                <th colspan="2">HARGA PERKIRAAN SENDIRI (HPS)</th>
-                <th colspan="4">PENAWARAN (${state.namaPerusahaan})</th>
-                <th colspan="4">PENAWARAN TERKOREKSI</th>
-                <th colspan="4">NEGOSIASI</th>
+                <th rowspan="2" style="width:22px; padding:2px 3px;">NO</th>
+                <th rowspan="2" style="padding:2px 4px;">URAIAN</th>
+                <th rowspan="2" style="width:34px; padding:2px 2px;">Vol</th>
+                <th rowspan="2" style="width:32px; padding:2px 2px;">Sat</th>
+                <th colspan="2" style="padding:2px 3px;">HARGA PERKIRAAN SENDIRI (HPS)</th>
+                <th colspan="4" style="padding:2px 3px;">PENAWARAN (${state.namaPerusahaan})</th>
+                <th colspan="4" style="padding:2px 3px;">PENAWARAN TERKOREKSI</th>
+                <th colspan="4" style="padding:2px 3px;">NEGOSIASI</th>
               </tr>
               <tr>
-                <th>HARGA SATUAN</th><th>JUMLAH HARGA</th>
-                <th>Vol</th><th>Sat</th><th>HARGA SATUAN</th><th>JUMLAH HARGA</th>
-                <th>Vol</th><th>Sat</th><th>HARGA SATUAN</th><th>JUMLAH HARGA</th>
-                <th>Vol</th><th>Sat</th><th>HARGA SATUAN</th><th>JUMLAH HARGA</th>
+                <th style="padding:2px 2px;">HARGA SATUAN</th><th style="padding:2px 2px;">JUMLAH HARGA</th>
+                <th style="padding:2px 2px;">Vol</th><th style="padding:2px 2px;">Sat</th><th style="padding:2px 2px;">HARGA SATUAN</th><th style="padding:2px 2px;">JUMLAH HARGA</th>
+                <th style="padding:2px 2px;">Vol</th><th style="padding:2px 2px;">Sat</th><th style="padding:2px 2px;">HARGA SATUAN</th><th style="padding:2px 2px;">JUMLAH HARGA</th>
+                <th style="padding:2px 2px;">Vol</th><th style="padding:2px 2px;">Sat</th><th style="padding:2px 2px;">HARGA SATUAN</th><th style="padding:2px 2px;">JUMLAH HARGA</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="kt-item-rows">
               ${state.items.map(it => {
                 if (it.vol === null || isNaN(it.vol)) {
-                  return `<tr style="font-weight:bold; background:#f3f4f6;"><td style="text-align:center;">${it.no}</td><td colspan="17">${it.uraian}</td></tr>`;
+                  return `<tr class="kt-row-item" style="font-weight:bold; background:#f3f4f6; break-inside:avoid; page-break-inside:avoid;"><td style="text-align:center; padding:2px 3px;">${it.no}</td><td colspan="17" style="padding:2px 4px;">${it.uraian}</td></tr>`;
                 }
                 return `
-                  <tr>
-                    <td style="text-align:center;">${it.no}</td>
-                    <td>${it.uraian}</td>
-                    <td style="text-align:right;">${fmtVol(it.vol)}</td>
-                    <td style="text-align:center;">${it.sat}</td>
-                    <td style="text-align:right;">${fmtRp(it.hps)}</td>
-                    <td style="text-align:right;">${fmtRp(it.vol * it.hps)}</td>
-                    <td style="text-align:right;">${fmtVol(it.vol)}</td>
-                    <td style="text-align:center;">${it.sat}</td>
-                    <td style="text-align:right;">${fmtRp(it.pen)}</td>
-                    <td style="text-align:right;">${fmtRp(it.vol * it.pen)}</td>
-                    <td style="text-align:right;">${fmtVol(it.vol)}</td>
-                    <td style="text-align:center;">${it.sat}</td>
-                    <td style="text-align:right;">${fmtRp(it.pen)}</td>
-                    <td style="text-align:right;">${fmtRp(it.vol * it.pen)}</td>
-                    <td style="text-align:right;">${fmtVol(it.vol)}</td>
-                    <td style="text-align:center;">${it.sat}</td>
-                    <td style="text-align:right;">${fmtRp(it.nego)}</td>
-                    <td style="text-align:right;">${fmtRp(it.vol * it.nego)}</td>
+                  <tr class="kt-row-item" style="break-inside:avoid; page-break-inside:avoid;">
+                    <td style="text-align:center; padding:2px 2px;">${it.no}</td>
+                    <td style="padding:2px 4px;">${it.uraian}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtVol(it.vol)}</td>
+                    <td style="text-align:center; padding:2px 2px;">${it.sat}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.hps)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.hps)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtVol(it.vol)}</td>
+                    <td style="text-align:center; padding:2px 2px;">${it.sat}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.pen)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.pen)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtVol(it.vol)}</td>
+                    <td style="text-align:center; padding:2px 2px;">${it.sat}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.pen)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.pen)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtVol(it.vol)}</td>
+                    <td style="text-align:center; padding:2px 2px;">${it.sat}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.nego)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.nego)}</td>
                   </tr>
                 `;
               }).join('')}
-              <tr style="font-weight:bold;"><td colspan="4" style="text-align:right;">Sub Total</td><td></td><td style="text-align:right;">${fmtRp(tot.subHps)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.subPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.subPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.subNego)}</td></tr>
-              <tr style="font-weight:bold;"><td colspan="4" style="text-align:right;">PPN 11 %</td><td></td><td style="text-align:right;">${fmtRp(tot.ppnHps)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.ppnPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.ppnPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.ppnNego)}</td></tr>
-              <tr style="font-weight:bold; background:#e5e7eb;"><td colspan="4" style="text-align:right;">T O T A L</td><td></td><td style="text-align:right;">${fmtRp(tot.totHps)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.totPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.totPen)}</td><td colspan="3"></td><td style="text-align:right;">${fmtRp(tot.totNego)}</td></tr>
+            </tbody>
+            <tbody class="kt-summary-rows">
+              <tr class="kt-row-summary" style="font-weight:bold; break-inside:avoid; page-break-inside:avoid;"><td colspan="4" style="text-align:right; padding:2px 4px;">Sub Total</td><td></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.subHps)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.subPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.subPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.subNego)}</td></tr>
+              <tr class="kt-row-summary" style="font-weight:bold; break-inside:avoid; page-break-inside:avoid;"><td colspan="4" style="text-align:right; padding:2px 4px;">PPN 11 %</td><td></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.ppnHps)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.ppnPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.ppnPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.ppnNego)}</td></tr>
+              <tr class="kt-row-summary" style="font-weight:bold; background:#e5e7eb; break-inside:avoid; page-break-inside:avoid;"><td colspan="4" style="text-align:right; padding:2px 4px;">T O T A L</td><td></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.totHps)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.totPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.totPen)}</td><td colspan="3"></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.totNego)}</td></tr>
+              <tr class="kt-row-summary" style="font-weight:bold; break-inside:avoid; page-break-inside:avoid;"><td colspan="4" style="text-align:right; padding:2px 4px;">TOTAL DIBULATKAN</td><td></td><td style="text-align:right; padding:2px 2px;">${fmtRp(tot.totHpsRound)}</td><td colspan="12"></td></tr>
+              <tr class="kt-row-summary" style="font-weight:bold; break-inside:avoid; page-break-inside:avoid;"><td colspan="4" style="text-align:right; padding:2px 4px;">PEMBULATAN</td><td></td><td style="text-align:right; padding:2px 2px;">${fmtRp(state.nilaiHps)}</td><td colspan="12"></td></tr>
             </tbody>
           </table>
-          <table class="no-border-table" style="width:100%; margin-top:10px; font-size:8.5pt;">
+          <table class="no-border-table kt-sign-table" style="width:100%; margin-top:6px; font-size:8pt; line-height:1.2; break-inside:avoid; page-break-inside:avoid;">
             <tr>
               <td style="width:50%; text-align:center;">
                 <div>Penyedia Jasa</div>
                 <div><strong>${state.namaPerusahaan}</strong></div>
-                <div style="height:40px;"></div>
+                <div style="height:34px;"></div>
                 <div><strong><u>${state.namaPimpinan}</u></strong></div>
                 <div>${state.jabatanPimpinan}</div>
               </td>
               <td style="width:50%; text-align:center;">
                 <div><strong>PEJABAT PENGADAAN</strong></div>
                 <div>${state.pekerjaan}</div>
-                <div style="height:40px;"></div>
+                <div style="height:34px;"></div>
                 <div><strong><u>${state.namaPp}</u></strong></div>
                 <div>${state.nipPp}</div>
               </td>
@@ -2800,6 +2868,173 @@ function printSingleDocPdf(docId) {
   setTimeout(() => window.print(), 60);
 }
 
+
+function paginatePrintSheetsForPrint(containerEl) {
+  if (!containerEl) return;
+  const sheets = Array.from(containerEl.querySelectorAll('.paper-a4'));
+  if (!sheets.length) return;
+
+  const measureHost = document.createElement('div');
+  measureHost.style.cssText = 'position:fixed; left:-9999px; top:0; width:297mm; visibility:hidden; pointer-events:none; z-index:-1;';
+  document.body.appendChild(measureHost);
+
+  try {
+    sheets.forEach(sheet => {
+      // Skip cover sheet
+      if (sheet.querySelector('.cover-frame')) return;
+
+      const isLandscape = sheet.classList.contains('landscape');
+      const sheetWidthCss = isLandscape ? '297mm' : '210mm';
+      const pageOrientClass = isLandscape ? 'print-page-landscape' : 'print-page-portrait';
+      // Safe printable height budget (in px at 96dpi) so bottom signature/notes never clip at page margin
+      const MAX_PAGE_HEIGHT_PX = isLandscape ? 635 : 940;
+
+      // Locate main data table (.doc-table) if present
+      const mainTable = sheet.querySelector('table.doc-table');
+      if (!mainTable) return;
+
+      const allTbodies = Array.from(mainTable.querySelectorAll('tbody'));
+      if (!allTbodies.length) return;
+
+      // Collect item rows vs summary/total rows
+      let itemRows = [];
+      let summaryRows = [];
+
+      if (allTbodies.length >= 2) {
+        itemRows = Array.from(allTbodies[0].querySelectorAll('tr'));
+        summaryRows = allTbodies.slice(1).flatMap(tb => Array.from(tb.querySelectorAll('tr')));
+      } else {
+        const rows = Array.from(allTbodies[0].querySelectorAll('tr'));
+        // Treat trailing total/sub-total/PPN/kesimpulan rows as summary if there are multiple rows
+        const isSummaryRow = (tr) => {
+          const txt = (tr.textContent || '').trim().toLowerCase();
+          return txt.startsWith('sub total') || txt.startsWith('ppn ') || txt === 't o t a l' || txt === 'total' || txt.startsWith('total dibulatkan') || txt.startsWith('pembulatan') || txt.startsWith('kesimpulan');
+        };
+        let splitIdx = rows.length;
+        while (splitIdx > 1 && isSummaryRow(rows[splitIdx - 1])) {
+          splitIdx--;
+        }
+        itemRows = rows.slice(0, splitIdx);
+        summaryRows = rows.slice(splitIdx);
+      }
+
+      if (itemRows.length < 2) return;
+
+      // Elements before and after mainTable inside sheet
+      const sheetChildren = Array.from(sheet.children);
+      const tableIdx = sheetChildren.indexOf(mainTable);
+      if (tableIdx < 0) return;
+
+      const prefixHtml = sheetChildren.slice(0, tableIdx).map(el => el.outerHTML).join('');
+      const suffixHtml = sheetChildren.slice(tableIdx + 1).map(el => el.outerHTML).join('');
+      const theadHtml = mainTable.querySelector('thead') ? mainTable.querySelector('thead').outerHTML : '';
+      const tableStyleAttr = mainTable.getAttribute('style') || 'font-size:7.5pt;';
+      const sheetStyleAttr = sheet.getAttribute('style') || (isLandscape ? 'padding: 10mm 12mm; font-size: 8.5pt;' : 'padding: 14mm 16mm; font-size: 10.5pt;');
+      const sheetClassAttr = sheet.getAttribute('class') || (isLandscape ? 'paper-a4 landscape' : 'paper-a4');
+
+      function fitsOnPage(candidateItemRows, includeSummary, includeSuffix) {
+        const itemsStr = candidateItemRows.map(r => r.outerHTML).join('');
+        const sumStr = includeSummary && summaryRows.length ? `<tbody>${summaryRows.map(r => r.outerHTML).join('')}</tbody>` : '';
+        const sufStr = includeSuffix ? suffixHtml : '';
+        measureHost.style.width = sheetWidthCss;
+        measureHost.innerHTML = `
+          <div class="${sheetClassAttr}" style="${sheetStyleAttr}; width:${sheetWidthCss}; min-height:auto; height:auto; box-sizing:border-box;">
+            ${prefixHtml}
+            <table class="doc-table" style="${tableStyleAttr}">
+              ${theadHtml}
+              <tbody>${itemsStr}</tbody>
+              ${sumStr}
+            </table>
+            ${sufStr}
+          </div>
+        `;
+        const pEl = measureHost.firstElementChild;
+        return pEl ? pEl.getBoundingClientRect().height <= MAX_PAGE_HEIGHT_PX : true;
+      }
+
+      if (fitsOnPage(itemRows, true, true)) return;
+
+      const pagesSpec = [];
+      let cursor = 0;
+
+      while (cursor < itemRows.length) {
+        let low = cursor + 1;
+        let high = itemRows.length;
+        let bestEnd = cursor + 1;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          const slice = itemRows.slice(cursor, mid);
+          const isLastSlice = mid === itemRows.length;
+          if (fitsOnPage(slice, isLastSlice, isLastSlice)) {
+            bestEnd = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+        pagesSpec.push({
+          items: itemRows.slice(cursor, bestEnd),
+          includeSummary: false,
+          includeSuffix: false
+        });
+        cursor = bestEnd;
+      }
+
+      const lastPage = pagesSpec[pagesSpec.length - 1];
+      if (fitsOnPage(lastPage.items, true, true)) {
+        lastPage.includeSummary = true;
+        lastPage.includeSuffix = true;
+      } else {
+        pagesSpec.push({
+          items: [],
+          includeSummary: true,
+          includeSuffix: true
+        });
+      }
+
+      const wrap = sheet.closest('.print-page-wrap');
+      const generatedPagesHtml = pagesSpec.map((pg, idx) => {
+        const sumStr = pg.includeSummary && summaryRows.length ? `<tbody>${summaryRows.map(r => r.outerHTML).join('')}</tbody>` : '';
+        const sufStr = pg.includeSuffix ? suffixHtml : '';
+        const pageBadge = pagesSpec.length > 1 ? ` <span style="font-weight:normal; font-size:8pt;">(Hal. ${idx + 1}/${pagesSpec.length})</span>` : '';
+
+        // Inject page badge into first heading/title child if present
+        const tempPrefix = document.createElement('div');
+        tempPrefix.innerHTML = prefixHtml;
+        if (pageBadge && tempPrefix.firstElementChild) {
+          tempPrefix.firstElementChild.innerHTML += pageBadge;
+        }
+
+        const sheetContent = `
+          <div class="${sheetClassAttr}" style="${sheetStyleAttr}">
+            ${tempPrefix.innerHTML}
+            <table class="doc-table" style="${tableStyleAttr}">
+              ${theadHtml}
+              <tbody>${pg.items.map(r => r.outerHTML).join('')}</tbody>
+              ${sumStr}
+            </table>
+            ${sufStr}
+          </div>
+        `;
+        return wrap ? `<div class="print-page-wrap ${pageOrientClass}">${sheetContent}</div>` : sheetContent;
+      }).join('');
+
+      const tempFrag = document.createElement('div');
+      tempFrag.innerHTML = generatedPagesHtml;
+      const targetNode = wrap || sheet;
+      const parentNode = targetNode.parentNode;
+      while (tempFrag.firstChild) {
+        parentNode.insertBefore(tempFrag.firstChild, targetNode);
+      }
+      parentNode.removeChild(targetNode);
+    });
+  } finally {
+    if (measureHost && measureHost.parentNode) {
+      measureHost.parentNode.removeChild(measureHost);
+    }
+  }
+}
+
 function renderPreview() {
   const docs = buildAllDocuments();
   const btnContainer = document.getElementById('doc-selector-btns');
@@ -2845,6 +3080,7 @@ function renderPreview() {
   const resolvedDocs = targetDocs.length ? targetDocs : docs;
   const activeHtml = resolvedDocs.map(d => d.html).join('');
   printStage.innerHTML = wrapOrientedPages(activeHtml);
+  paginatePrintSheetsForPrint(printStage);
 
   stage.innerHTML = resolvedDocs.map(d => renderPreviewWithToolbar(d)).join('');
 }
@@ -2854,9 +3090,34 @@ function selectDoc(id) {
   renderPreview();
 }
 
+const DEFAULT_DOC_TITLE = document.title;
+
+function getPaketPrintTitle() {
+  readFormInputs();
+  const rawPaket = String(state.pekerjaan || state.kegiatan || "").replace(/\s+/g, " ").trim();
+  if (!rawPaket) return DEFAULT_DOC_TITLE;
+  // Remove characters that break filenames in print-to-PDF dialogs while keeping readability
+  return rawPaket.replace(/[\\/:*?"<>|]+/g, "-").trim() || DEFAULT_DOC_TITLE;
+}
+
+function applyPaketPrintTitle() {
+  document.title = getPaketPrintTitle();
+}
+
 function printAllDocs() {
   renderPreview();
+  const prevTitle = DEFAULT_DOC_TITLE;
+  const paketTitle = getPaketPrintTitle();
+  document.title = paketTitle;
+  const restoreTitle = () => {
+    document.title = prevTitle;
+    window.removeEventListener("afterprint", restoreTitle);
+  };
+  window.addEventListener("afterprint", restoreTitle);
   window.print();
+  setTimeout(() => {
+    if (document.title !== prevTitle) document.title = prevTitle;
+  }, 2000);
 }
 
 
@@ -3778,30 +4039,11 @@ function updateMissingFieldHighlights() {
 
 
 function clearUploadData() {
-  resetAllInputsForFreshLoad();
-
-  const defaults = {
-    hps: 'Pilih file HPS...',
-    pen: 'Pilih rincian penawaran...',
-    jdw: 'Pilih jadwal.xlsx...',
-    kual: 'Pilih PDF Kualifikasi...',
-    sum: 'Pilih PDF Summary Report...',
-    dokmil: 'Pilih PDF Dokmil...'
-  };
-  const bulkInp = document.getElementById('inp-bulk-folder');
-  if (bulkInp) bulkInp.value = '';
-  UPLOAD_SEQUENCE.forEach((key) => {
-    const inp = document.getElementById('inp-' + key);
-    if (inp) inp.value = '';
-    const lbl = document.getElementById('lbl-' + key);
-    if (lbl) lbl.textContent = defaults[key] || 'Pilih file...';
-  });
-  const statusEl = document.getElementById('upload-status');
-  if (statusEl) {
-    statusEl.textContent = '';
-    statusEl.classList.add('hidden');
+  if (typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
+    window.location.reload();
+    return;
   }
-
+  resetAllInputsForFreshLoad();
   populateFormInputs();
   syncAll();
   renderPreview();
@@ -3846,31 +4088,80 @@ function autoFillPimpinanDanJabatan() {
 const SKK_PRESETS_BY_KBLI = {
   "42201": {
     pelaksana: [
+      "Pelaksana Lapangan Pekerjaan Drainase Perkotaan",
+      "Pelaksana Lapangan Pekerjaan Drainase Perkotaan Madya",
+      "Pengawas lapangan Pekerjaan Drainase Perkotaan Madya",
       "Pelaksana Lapangan Pekerjaan Saluran Irigasi",
-      "Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya"
+      "Pelaksana Lapangan Pekerjaan Saluran Irigasi Madya",
+      "Pelaksana Lapangan Pekerjaan Bangunan Pengaman Sungai dan Pantai",
+      "Pelaksana Lapangan Pekerjaan Bangunan Pengaman Sungai dan Pantai Madya",
+      "Pelaksana Saluran Irigasi",
+      "Pelaksana Saluran Irigasi Madya",
+      "Ahli Muda Teknik Sumber Daya Air"
     ],
     k3: [
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan Konstruksi",
+      "Supervisor K3 Konstruksi",
+      "Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Muda Keselamatan Konstruksi",
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
     ]
   },
   "42101": {
     pelaksana: [
       "Pelaksana Lapangan Pekerjaan Jalan",
-      "Pelaksana Lapangan Pekerjaan Jalan Madya"
+      "Pelaksana Lapangan Pekerjaan Jalan Madya",
+      "Ahli Muda Bidang Keahlian Teknik Jalan",
+      "Pelaksana Lapangan Pekerjaan Jembatan",
+      "Pelaksana Lapangan Pekerjaan Jembatan Madya",
+      "Ahli Muda Teknik Jalan dan Jembatan"
     ],
     k3: [
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan Konstruksi",
+      "Supervisor K3 Konstruksi",
+      "Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Muda Keselamatan Konstruksi",
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
+    ]
+  },
+  "42010": {
+    pelaksana: [
+      "Ahli Muda Bidang Keahlian Teknik Jalan",
+      "Pelaksana Lapangan Pekerjaan Jalan",
+      "Pelaksana Lapangan Pekerjaan Jalan Madya",
+      "Pelaksana Lapangan Pekerjaan Jembatan",
+      "Pelaksana Lapangan Pekerjaan Jembatan Madya",
+      "Ahli Muda Teknik Jalan dan Jembatan"
+    ],
+    k3: [
+      "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan Konstruksi",
+      "Supervisor K3 Konstruksi",
+      "Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Muda Keselamatan Konstruksi",
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
     ]
   },
   "41019": {
     pelaksana: [
       "Pelaksana Lapangan Pekerjaan Gedung",
-      "Pelaksana Lapangan Pekerjaan Gedung Madya"
+      "Pelaksana Lapangan Pekerjaan Gedung Madya",
+      "Pelaksana Bangunan Gedung / Pekerjaan Gedung",
+      "Pelaksana Bangunan Gedung / Pekerjaan Gedung Madya",
+      "Ahli Muda Teknik Bangunan Gedung"
     ],
     k3: [
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi Madya",
+      "Petugas Keselamatan Konstruksi",
+      "Supervisor K3 Konstruksi",
+      "Ahli Muda Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Madya Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
+      "Ahli Muda Keselamatan Konstruksi",
       "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi"
     ]
   }
@@ -3879,7 +4170,7 @@ const SKK_PRESETS_BY_KBLI = {
 function detectKbliOrSbuCode() {
   const kbliStr = String(state.kbli || "");
   const sbuStr = String(state.sbu || "");
-  const mKbli = kbliStr.match(/\b(42201|42101|41019)\b/);
+  const mKbli = kbliStr.match(/\b(42201|42101|42010|41019)\b/);
   if (mKbli) return mKbli[1];
   if (/\bBS004\b/i.test(sbuStr) || /irigasi|drainase/i.test(kbliStr + " " + sbuStr)) return "42201";
   if (/\bBS001\b/i.test(sbuStr) || /\bjalan\b/i.test(kbliStr + " " + sbuStr)) return "42101";
@@ -3907,39 +4198,113 @@ function resolveDokmilK3Option(rawK3, baseOptions) {
   return exact || null;
 }
 
+function handleManualSkkSelect(kind, val) {
+  if (kind === 'pelaksana') {
+    state._skkPelaksanaManual = true;
+    state.skkPelaksana = val;
+    const inpPel = document.getElementById('skkPelaksanaManual');
+    if (inpPel) inpPel.value = val;
+  } else if (kind === 'k3') {
+    state._skkK3Manual = true;
+    state._skkK3FromDokmil = false;
+    state.skkK3 = val;
+    const inpK3 = document.getElementById('skkK3Manual');
+    if (inpK3) inpK3.value = val;
+  }
+  syncAll();
+}
+
+function handleManualSkkInput(kind, val) {
+  const trimmed = String(val || '');
+  if (kind === 'pelaksana') {
+    if (trimmed.trim() !== '') {
+      state._skkPelaksanaManual = true;
+      state.skkPelaksana = trimmed;
+    } else {
+      state._skkPelaksanaManual = false;
+      const selPel = document.getElementById('skkPelaksana');
+      if (selPel) state.skkPelaksana = selPel.value;
+    }
+  } else if (kind === 'k3') {
+    if (trimmed.trim() !== '') {
+      state._skkK3Manual = true;
+      state._skkK3FromDokmil = false;
+      state.skkK3 = trimmed;
+    } else {
+      state._skkK3Manual = false;
+      state._skkK3FromDokmil = false;
+      const selK3 = document.getElementById('skkK3');
+      if (selK3) state.skkK3 = selK3.value;
+    }
+  }
+  syncAll();
+}
+
 function syncSkkWithIzinAndSbu() {
   const code = detectKbliOrSbuCode();
   const preset = SKK_PRESETS_BY_KBLI[code] || SKK_PRESETS_BY_KBLI["42201"];
 
   const selPel = document.getElementById("skkPelaksana");
+  const inpPel = document.getElementById("skkPelaksanaManual");
   if (selPel) {
-    const prevVal = state._skkPelaksanaManual ? state.skkPelaksana : preset.pelaksana[0];
+    const activePel = (state._skkPelaksanaManual && String(state.skkPelaksana || "").trim() !== "")
+      ? state.skkPelaksana
+      : preset.pelaksana[0];
     selPel.innerHTML = preset.pelaksana
-      .map((optVal, i) => `<option value="${optVal}"${optVal === prevVal || (!preset.pelaksana.includes(prevVal) && i === 0) ? " selected" : ""}>${optVal}</option>`)
+      .map((optVal, i) => `<option value="${optVal}"${optVal === activePel || (!preset.pelaksana.includes(activePel) && i === 0) ? " selected" : ""}>${optVal}</option>`)
       .join("");
-    state.skkPelaksana = selPel.value;
+    if (inpPel && document.activeElement !== inpPel) {
+      inpPel.value = activePel;
+    }
+    state.skkPelaksana = (inpPel && document.activeElement === inpPel) ? inpPel.value : activePel;
   }
 
   const selK3 = document.getElementById("skkK3");
+  const inpK3 = document.getElementById("skkK3Manual");
   if (selK3) {
     const lowestLevelK3 = preset.k3[preset.k3.length - 1];
-    if (isInvalidK3Fragment(state.skkK3)) {
+    const isCustomManualK3 = Boolean(state._skkK3Manual && !state._skkK3FromDokmil && String(state.skkK3 || "").trim() !== "" && !isInvalidK3Fragment(state.skkK3));
+    if (isInvalidK3Fragment(state.skkK3) && !isCustomManualK3) {
       state.skkK3 = lowestLevelK3;
       state._skkK3FromDokmil = false;
     }
     const dokmilMappedK3 = state._skkK3FromDokmil ? resolveDokmilK3Option(state.skkK3, preset.k3) : null;
     const optionsList = preset.k3.filter(optVal => !isInvalidK3Fragment(optVal));
-    const candidateK3 = dokmilMappedK3 || (state._skkK3Manual && !isInvalidK3Fragment(state.skkK3) ? state.skkK3 : lowestLevelK3);
+    const candidateK3 = dokmilMappedK3 || (isCustomManualK3 ? state.skkK3 : lowestLevelK3);
     const targetK3 = optionsList.includes(candidateK3) ? candidateK3 : lowestLevelK3;
     selK3.innerHTML = optionsList
       .map((optVal) => `<option value="${optVal}"${optVal === targetK3 ? " selected" : ""}>${optVal}</option>`)
       .join("");
-    state.skkK3 = selK3.value;
+    if (inpK3 && document.activeElement !== inpK3) {
+      inpK3.value = isCustomManualK3 ? state.skkK3 : targetK3;
+    }
+    state.skkK3 = (inpK3 && document.activeElement === inpK3) ? inpK3.value : (isCustomManualK3 ? state.skkK3 : targetK3);
   }
 }
 
+function updateAktaLabel() {
+  const lbl = document.getElementById('lbl-akta-info');
+  if (!lbl) return;
+  const val = String((document.getElementById('aktaInfo')?.value ?? state.aktaInfo ?? '')).trim();
+  const hasPerubahan = Boolean(state._aktaPerubahanActive) || /perubahan/i.test(val);
+  lbl.textContent = hasPerubahan ? 'Akta Perubahan' : 'Keterangan Akta Pendirian';
+}
+
+function handleAktaInfoInput() {
+  const el = document.getElementById('aktaInfo');
+  const val = String(el?.value || '').trim();
+  if (/perubahan/i.test(val)) {
+    state._aktaPerubahanActive = true;
+  } else if (!val) {
+    state._aktaPerubahanActive = false;
+  }
+  syncAll();
+}
+
 function syncAll() {
+  applyPaketPrintTitle();
   readFormInputs();
+  updateAktaLabel();
   autoFillPimpinanDanJabatan();
   syncSkkWithIzinAndSbu();
 
