@@ -291,6 +291,7 @@
           <input id="inp-sum" type="file" accept=".pdf" class="hidden" onchange="handleSummaryPdfUpload(event)">
         </label>
       </div>
+
     </div>
 
     <!-- TABS NAVIGATION -->
@@ -617,8 +618,11 @@
           </div>
           <div class="grid grid-cols-2 gap-2 pt-2 border-t">
             <div>
-              <label class="font-semibold text-slate-600">Jenis Peralatan</label>
-              <input id="alatJenis" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="readFormInputs(); const jEl=document.getElementById('alatJenis'); const vEl=document.getElementById('alatVol'); if(jEl) jEl.value=state.alatJenis; if(vEl) vEl.value=state.alatVol; syncAll()">
+              <div class="flex items-center justify-between gap-1.5 whitespace-nowrap">
+                <label class="font-semibold text-slate-600 shrink-0">Jenis Peralatan</label>
+                <span id="note-alat-dokmil" class="text-[9px] font-medium leading-none text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded truncate">Sesuaikan Alat Dengan DOKMIL</span>
+              </div>
+              <input id="alatJenis" type="text" class="w-full mt-1 border rounded px-2 py-1.5" oninput="handleAlatJenisEdit()">
             </div>
             <div class="grid grid-cols-2 gap-1">
               <div>
@@ -797,8 +801,8 @@ const state = {
   evalAlat: "P",
   evalPersonil: "P",
   evalRkk: "P",
-  alatJenis: "",
-  alatVol: "",
+  alatJenis: "Concrete Mixer",
+  alatVol: "1 Unit",
   alatStatus: "Milik Sendiri",
   namaPelaksana: "",
   pengalamanPelaksana: 1,
@@ -809,6 +813,239 @@ const state = {
   activeDoc: "all",
   uploadedFlags: { hps: false, pen: false, jdw: false, kual: false, sum: false, dokmil: false }
 };
+
+
+const ALAT_VOLUME_DEFAULTS = {
+  "Dump Truck": "1 Unit",
+  "Concrete Mixer": "1 Unit",
+  "Stamper / Alat Pemadat": "2 Unit",
+  "Excavator": "1 Unit",
+  "Motor Grader": "1 Unit",
+  "Vibratory Roller": "1 Unit",
+  "Wheel Loader": "1 Unit"
+};
+
+const SBU_ALAT_DEFAULTS = [
+  {
+    match: ["drainase", "irigasi", "bs004"],
+    alatJenis: "Concrete Mixer"
+  },
+  {
+    match: ["jalan", "bs001", "42101", "42010"],
+    alatJenis: "Dump Truck"
+  },
+  {
+    match: ["gedung", "bg009", "41019"],
+    alatJenis: "Concrete Mixer"
+  },
+  {
+    match: ["jembatan", "bs002"],
+    alatJenis: "Concrete Mixer"
+  },
+  {
+    match: ["limbah", "tpa", "lingkungan"],
+    alatJenis: "Dump Truck"
+  }
+];
+
+function getDefaultVolumeByJenisAlat(jenisVal) {
+  const j = String(jenisVal || "").trim();
+  if (ALAT_VOLUME_DEFAULTS[j]) {
+    return ALAT_VOLUME_DEFAULTS[j];
+  }
+  const jl = j.toLowerCase();
+  for (const [alatName, volVal] of Object.entries(ALAT_VOLUME_DEFAULTS)) {
+    if (jl.includes(alatName.toLowerCase())) {
+      return volVal;
+    }
+  }
+  if (jl.includes("stamper") || jl.includes("pemadat") || jl.includes("vibro")) {
+    return "2 Unit";
+  }
+  return "1 Unit";
+}
+
+function getDefaultAlatBySbu(sbuVal) {
+  const s = String(sbuVal || "").toLowerCase();
+  for (const entry of SBU_ALAT_DEFAULTS) {
+    if (entry.match.some(kw => s.includes(kw))) {
+      return {
+        alatJenis: entry.alatJenis,
+        alatVol: getDefaultVolumeByJenisAlat(entry.alatJenis)
+      };
+    }
+  }
+  return {
+    alatJenis: "Concrete Mixer",
+    alatVol: getDefaultVolumeByJenisAlat("Concrete Mixer")
+  };
+}
+
+const DATABASE_PERALATAN_LIST = [
+  { jenis: "Dump Truck", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Angkut material / timbunan pekerjaan jalan & lapangan" },
+  { jenis: "Concrete Mixer", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Pencampuran beton pekerjaan drainase, irigasi & gedung" },
+  { jenis: "Stamper / Alat Pemadat", volumeDefault: "2 Unit", satuan: "Unit", keterangan: "Pemadatan timbunan tanah / pasir / lapis pondasi" },
+  { jenis: "Excavator", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Galian saluran, tanah dan pemuatan material" },
+  { jenis: "Vibratory Roller", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Pemadatan badan jalan / perkerasan" },
+  { jenis: "Motor Grader", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Perataan permukaan dan kemiringan badan jalan" },
+  { jenis: "Wheel Loader", volumeDefault: "1 Unit", satuan: "Unit", keterangan: "Pemuatan agregat dan material curah" }
+];
+
+const DATABASE_PP_PPK_LIST = [
+  {
+    namaPp: "Rieni Puspita, SP",
+    nipPp: "NIPPPK. 199109122024212036",
+    skPp: "T-900.1.3.5/1266/PERKIM.PERMUKIMAN",
+    tglSkPp: "12 Agustus 2026",
+    namaPpk: "Evan Dwianto Rante Tondok, ST",
+    nipPpk: "NIP. 199305112019031008",
+    skpd: "Dinas Perumahan Rakyat dan Kawasan Permukiman",
+    bpbj: "Bagian Pengadaan Barang dan Jasa",
+    daerah: "Kab. Kutai Timur"
+  },
+  {
+    namaPp: "Arief Adi Saputra",
+    nipPp: "",
+    skPp: "",
+    tglSkPp: "",
+    namaPpk: "",
+    nipPpk: "",
+    skpd: "Dinas Lingkungan Hidup",
+    bpbj: "Bagian Pengadaan Barang dan Jasa",
+    daerah: "Kab. Kutai Timur"
+  }
+];
+
+const DATABASE_SBU_KBLI_LIST = [
+  {
+    sbu: "BS004 - Kontruksi Jaringan Irigasi dan drainase",
+    kbli: "KBLI 2020 - 42201 Konstruksi Jaringan Irigasi dan Drainase dan sertifikat standar Terverifikasi atau KBLI 2025 - 42201 Konstruksi Jaringan Irigasi dan Drainase",
+    alatDefault: "Concrete Mixer",
+    volumeDefault: "1 Unit"
+  },
+  {
+    sbu: "BS001 - Konstruksi Bangunan Sipil Jalan",
+    kbli: "KBLI 2020 - 42101 Konstruksi Bangunan Sipil Jalan dan sertifikat standar Terverifikasi atau KBLI 2025 - 42101 Konstruksi Jalan Pada Permukaan Tanah",
+    alatDefault: "Dump Truck",
+    volumeDefault: "1 Unit"
+  },
+  {
+    sbu: "BG009 - Konstruksi Bangunan Gedung Lainnya",
+    kbli: "KBLI 2020 - 41019 Konstruksi Bangunan Gedung Lainnya dan sertifikat standar Terverifikasi atau KBLI 2025 - 41019 Konstruksi Bangunan Gedung Konvensional Lainnya",
+    alatDefault: "Concrete Mixer",
+    volumeDefault: "1 Unit"
+  }
+];
+
+function applyDatabasePpEntry(idx) {
+  const entry = DATABASE_PP_PPK_LIST[idx];
+  if (!entry) return;
+  if (entry.namaPp) state.namaPp = entry.namaPp;
+  if (entry.nipPp) state.nipPp = entry.nipPp;
+  if (entry.skPp) state.skPp = entry.skPp;
+  if (entry.tglSkPp) state.tglSkPp = entry.tglSkPp;
+  if (entry.namaPpk) state.namaPpk = entry.namaPpk;
+  if (entry.nipPpk) state.nipPpk = entry.nipPpk;
+  if (entry.skpd) state.skpd = entry.skpd;
+  if (entry.bpbj) state.bpbj = entry.bpbj;
+  if (entry.daerah) state.daerah = entry.daerah;
+  populateFormInputs();
+  syncAll();
+  if (typeof closeDatabasePpModal === "function") closeDatabasePpModal();
+}
+
+function applyDatabaseAlatEntry(idx) {
+  const entry = DATABASE_PERALATAN_LIST[idx];
+  if (!entry) return;
+  state.alatJenis = entry.jenis;
+  state.alatVol = entry.volumeDefault;
+  state._lastAlatJenis = state.alatJenis;
+  state._alatEditedManually = true;
+  const elJenis = document.getElementById("alatJenis");
+  const elVol = document.getElementById("alatVol");
+  if (elJenis) elJenis.value = state.alatJenis;
+  if (elVol) elVol.value = state.alatVol;
+  syncAll();
+  if (typeof closeDatabasePpModal === "function") closeDatabasePpModal();
+}
+
+function applyDatabaseSbuEntry(idx) {
+  const entry = DATABASE_SBU_KBLI_LIST[idx];
+  if (!entry) return;
+  state.sbu = entry.sbu;
+  state.kbli = entry.kbli;
+  state._sbuManual = true;
+  state._kbliManual = true;
+  state._lastSbu = state.sbu;
+  state.alatJenis = entry.alatDefault;
+  state.alatVol = entry.volumeDefault || getDefaultVolumeByJenisAlat(entry.alatDefault);
+  state._lastAlatJenis = state.alatJenis;
+  populateFormInputs();
+  const elVol = document.getElementById("alatVol");
+  if (elVol) elVol.value = state.alatVol;
+  syncAll();
+  if (typeof closeDatabasePpModal === "function") closeDatabasePpModal();
+}
+
+function renderDatabasePpModal() {
+  const box = document.getElementById("database-pp-content");
+  if (!box) return;
+  const ppHtml = DATABASE_PP_PPK_LIST.map((p, i) => `
+    <div class="p-2.5 rounded border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+      <div>
+        <div class="font-bold text-slate-800">${p.namaPp || "-"} <span class="font-normal text-slate-500">(${p.skpd || "-"})</span></div>
+        <div class="text-[11px] text-slate-600">PPK: ${p.namaPpk || "-"} | SK: ${p.skPp || "-"}</div>
+      </div>
+      <button type="button" onclick="applyDatabasePpEntry(${i})" class="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded cursor-pointer shrink-0">Pilih</button>
+    </div>
+  `).join("");
+
+  const alatHtml = DATABASE_PERALATAN_LIST.map((a, i) => `
+    <div class="p-2 rounded border border-slate-200 bg-white flex items-center justify-between gap-2">
+      <div>
+        <div class="font-bold text-slate-800">${a.jenis} <span class="font-mono text-emerald-700">[${a.volumeDefault}]</span></div>
+        <div class="text-[11px] text-slate-500">${a.keterangan}</div>
+      </div>
+      <button type="button" onclick="applyDatabaseAlatEntry(${i})" class="px-2 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded cursor-pointer shrink-0">Pakai</button>
+    </div>
+  `).join("");
+
+  const sbuHtml = DATABASE_SBU_KBLI_LIST.map((s, i) => `
+    <div class="p-2 rounded border border-slate-200 bg-white flex items-center justify-between gap-2">
+      <div>
+        <div class="font-bold text-slate-800">${s.sbu}</div>
+        <div class="text-[11px] text-slate-500">Alat Default: <strong>${s.alatDefault}</strong> (${s.volumeDefault})</div>
+      </div>
+      <button type="button" onclick="applyDatabaseSbuEntry(${i})" class="px-2 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded cursor-pointer shrink-0">Terapkan</button>
+    </div>
+  `).join("");
+
+  box.innerHTML = `
+    <div class="space-y-2">
+      <div class="font-bold text-slate-700">Database PP &amp; PPK</div>
+      ${ppHtml}
+    </div>
+    <div class="space-y-2 pt-2 border-t">
+      <div class="font-bold text-slate-700">Database SBU &amp; Alat Default</div>
+      ${sbuHtml}
+    </div>
+    <div class="space-y-2 pt-2 border-t">
+      <div class="font-bold text-slate-700">Database Jenis Alat &amp; Volume Default</div>
+      ${alatHtml}
+    </div>
+  `;
+}
+
+function handleDatabasePpButtonClick() {
+  renderDatabasePpModal();
+  const modal = document.getElementById("modal-database-pp");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeDatabasePpModal() {
+  const modal = document.getElementById("modal-database-pp");
+  if (modal) modal.classList.add("hidden");
+}
 
 function fmtRp(num) {
   if (num === null || num === undefined || isNaN(num)) return "";
@@ -1007,13 +1244,18 @@ function syncPpFieldsFromDataPP() {
   if (!state.nipPp) state.nipPp = "NIPPPK. 199109122024212036";
 }
 
-function showStatus(msg) {
+function showStatus(msg, isError = false) {
   const el = document.getElementById('upload-status');
+  if (!el) return;
   el.textContent = msg;
+  el.className = isError
+    ? 'text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full'
+    : 'text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full';
   el.classList.remove('hidden');
 }
 
 function processHpsFile(file) {
+  resetPersonelDanPimpinanFields();
   return new Promise((resolve) => {
     if (!file) return resolve(false);
     document.getElementById('lbl-hps').textContent = file.name;
@@ -1040,7 +1282,8 @@ function processHpsFile(file) {
       if (parsedItems.length > 0) {
         state.items = parsedItems;
         applyAutoNegoCorrectionToItems();
-        populateFormInputs();
+        resetPersonelDanPimpinanFields();
+      populateFormInputs();
         syncAll();
         showStatus(`Berhasil memuat ${parsedItems.length} baris HPS dari ${file.name}`);
       }
@@ -1053,12 +1296,14 @@ function processHpsFile(file) {
 }
 
 async function handleHpsUpload(e) {
+  resetPersonelDanPimpinanFields();
   if (!guardUploadInputChange('hps', e)) return;
   const file = e.target.files[0];
   await processHpsFile(file);
 }
 
 function processPenawaranFile(file) {
+  resetPersonelDanPimpinanFields();
   return new Promise((resolve) => {
     if (!file) return resolve(false);
     document.getElementById('lbl-pen').textContent = file.name;
@@ -1107,6 +1352,7 @@ function processPenawaranFile(file) {
 }
 
 async function handlePenawaranUpload(e) {
+  resetPersonelDanPimpinanFields();
   if (!guardUploadInputChange('pen', e)) return;
   const file = e.target.files[0];
   const check = validateSpecificUploadFile('pen', file);
@@ -1118,18 +1364,31 @@ async function handlePenawaranUpload(e) {
   await processPenawaranFile(file);
 }
 
-async function extractPdfText(file) {
+async function extractPdfText(file, onProgress = null) {
   if (typeof pdfjsLib === 'undefined') {
-    alert("Library PDF.js membutuhkan koneksi internet. Pastikan Anda terhubung ke internet saat upload PDF.");
-    return "";
+    throw new Error("Library PDF.js (pdfjsLib) belum dimuat. Pastikan koneksi internet aktif atau akses CDN PDF.js tidak terblokir.");
   }
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let pdf;
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  } catch (err) {
+    const reason = (err && err.message) ? err.message : String(err);
+    throw new Error(`Gagal membuka struktur PDF (${reason}). File mungkin rusak, terenkripsi/berpassword, atau bukan PDF valid.`);
+  }
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    fullText += content.items.map(item => item.str).join(" ") + "\n";
+    try {
+      if (typeof onProgress === 'function') {
+        onProgress(i, pdf.numPages);
+      }
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(" ") + "\n";
+    } catch (pageErr) {
+      const pReason = (pageErr && pageErr.message) ? pageErr.message : String(pageErr);
+      throw new Error(`Berhenti saat membaca halaman ${i} dari ${pdf.numPages}: ${pReason}`);
+    }
   }
   return fullText;
 }
@@ -1203,6 +1462,7 @@ function extractJadwalFromSummaryText(text) {
 }
 
 async function processSummaryPdfFile(file) {
+  resetPersonelDanPimpinanFields();
   if (!file) return false;
   document.getElementById('lbl-sum').textContent = file.name;
   state.uploadedFlags.sum = true;
@@ -1231,6 +1491,7 @@ async function processSummaryPdfFile(file) {
 }
 
 async function handleSummaryPdfUpload(e) {
+  resetPersonelDanPimpinanFields();
   if (!guardUploadInputChange('sum', e)) return;
   const file = e.target.files[0];
   const check = validateSpecificUploadFile('sum', file);
@@ -1243,6 +1504,7 @@ async function handleSummaryPdfUpload(e) {
 }
 
 async function processKualifikasiPdfFile(file) {
+  resetPersonelDanPimpinanFields();
   if (!file) return false;
   document.getElementById('lbl-kual').textContent = file.name;
   state.uploadedFlags.kual = true;
@@ -1291,11 +1553,7 @@ async function processKualifikasiPdfFile(file) {
     state.aktaInfo = `AKTA NO. ${String(mAktaPendirian[1]).trim().toUpperCase()} TGL ${String(mAktaPendirian[2]).trim().toUpperCase()}`;
   }
 
-  const mPengurus = text.match(/Manajerial\s+Nama\s+KTP\s+Alamat\s+NPWP\s+Tanggal Mulai Menjabat\s+Tanggal Akhir Menjabat\s+Status\s+([A-Za-z.,'\-\s]+?)\s+\d{14,20}/i)
-    || text.match(/(?:Direktur(?:\s+Utama)?|Pimpinan|Penanggung\s*Jawab)\s*:?\s*([A-Z][A-Za-z.,'\-\s]{2,60}?)(?=\s+(?:NIK|KTP|NPWP|Alamat|Jabatan|Status|Tanggal))/i);
-  if (mPengurus && mPengurus[1]) {
-    state.namaPimpinan = mPengurus[1].replace(/\s+/g, ' ').trim();
-  }
+  state.namaPimpinan = "";
 
   const mJabatan = text.match(/(?:Jabatan|Posisi|Kedudukan)\s*:?\s*((?:Direktur(?:\s+Utama)?|Wakil\s+Direktur|Komisaris(?:\s+Utama)?|Kepala\s+Cabang|Pimpinan|Penanggung\s*Jawab)[A-Za-z\s]*)/i)
     || text.match(/(Direktur\s+Utama|Direktur|Wakil\s+Direktur|Komisaris\s+Utama|Komisaris|Kepala\s+Cabang|Penanggung\s*Jawab)/i);
@@ -1312,6 +1570,7 @@ async function processKualifikasiPdfFile(file) {
 }
 
 async function handleKualifikasiPdfUpload(e) {
+  resetPersonelDanPimpinanFields();
   if (!guardUploadInputChange('kual', e)) return;
   const file = e.target.files[0];
   const check = validateSpecificUploadFile('kual', file);
@@ -1325,11 +1584,32 @@ async function handleKualifikasiPdfUpload(e) {
 
 
 async function processDokmilPdfFile(file) {
+  resetPersonelDanPimpinanFields();
   if (!file) return false;
-  document.getElementById('lbl-dokmil').textContent = file.name;
+  const lblDokmil = document.getElementById('lbl-dokmil');
+  if (lblDokmil) lblDokmil.textContent = file.name;
+  if (!state.uploadedFlags) state.uploadedFlags = {};
+  state.uploadedFlags.jdw = true;
   state.uploadedFlags.dokmil = true;
-  const text = await extractPdfText(file);
-  if (!text) return false;
+
+  let text = "";
+  try {
+    showStatus(`Memulai baca PDF Dokmil (${file.name})...`);
+    text = await extractPdfText(file, (pg, total) => {
+      showStatus(`Membaca PDF Dokmil (${file.name}): halaman ${pg} dari ${total}...`);
+    });
+    if (!text || !text.trim()) {
+      throw new Error("Teks pada PDF Dokmil kosong (kemungkinan hasil scan gambar tanpa lapisan teks atau kosong).");
+    }
+  } catch (err) {
+    const detail = (err && err.message) ? err.message : String(err);
+    showStatus(`Gagal baca PDF Dokmil (${file.name}): ${detail}`, true);
+    alert(`Gagal memproses PDF Dokmil "${file.name}".\nDetail error: ${detail}`);
+    updateUploadSequenceUi();
+    return false;
+  }
+
+  try {
 
   // 1. Nomor Registrasi Surat (angka tengah di antara tanda '/' pada Nomor: T-000.3.2/6729/PBJ atau T~000.3.2/6729/PBJ)
   const mNoSurat = text.match(/Nomor\s*:?\s*T\s*[~\-–—]?\s*000\s*\.\s*3\s*\.\s*2\s*\/\s*(\d[\d\s]*\d|\d)\s*\//i)
@@ -1411,18 +1691,6 @@ async function processDokmilPdfFile(file) {
   }
 
   // 5. Peralatan (Persyaratan Teknis 10.3.e.1)
-  const mAlatBlock = text.match(/Memiliki kemampuan menyediakan\s+peralatan\s+untuk\s+pelaksanaan pekerjaan[\s\S]{0,400}?Jenis\s+Kapasitas\s+Jumlah\s+1\s+([A-Za-z0-9\s\-\/.,()]+?)\s+(\d+[.,]?\d*\s*(?:M3|m3|Ton|HP|PK|Unit|Liter|Ltr|m2|M2|Kw|KW))\s+(\d+\s*Unit)/i)
-    || text.match(/Jenis\s+Kapasitas\s+Jumlah\s+1\s+([A-Za-z0-9\s\-\/.,()]+?)\s+([\d.,]+\s*[A-Za-z0-9]+)\s+(\d+\s*Unit)/i);
-  if (mAlatBlock) {
-    const jenis = mAlatBlock[1].replace(/\s+/g, ' ').trim();
-    const kap = mAlatBlock[2].replace(/\s+/g, ' ').trim();
-    const jml = mAlatBlock[3].replace(/\s+/g, ' ').trim();
-    state.alatJenis = kap ? `${jenis} (${kap})` : jenis;
-    state.alatVol = jml;
-    if (!String(state.alatStatus || '').trim()) {
-      state.alatStatus = "Milik Sendiri";
-    }
-  }
 
   // 6. Personel & SKK (Persyaratan Teknis 10.3.e.2)
   const mPelaksana = text.match(/Pelaksana\s+\d+\s*Tahun\s+(SKK\s+[A-Za-z0-9\s\-\/.,()]+?)(?=\s+2\s+Petugas\s+K3|\s+Petugas\s+K3)/i);
@@ -1439,14 +1707,22 @@ async function processDokmilPdfFile(file) {
     state._skkK3FromDokmil = false;
   }
 
-  populateFormInputs();
-  syncAll();
-  showStatus(`Data Dokmil PDF (${file.name}) berhasil diekstrak! No. Surat: ${state.nomorSuratAngka || '-'}`);
-  updateUploadSequenceUi();
-  return true;
+    populateFormInputs();
+    syncAll();
+    showStatus(`Data Dokmil PDF (${file.name}) berhasil diekstrak! No. Surat: ${state.nomorSuratAngka || '-'}`);
+    updateUploadSequenceUi();
+    return true;
+  } catch (parseErr) {
+    const pDetail = (parseErr && parseErr.message) ? parseErr.message : String(parseErr);
+    showStatus(`Gagal ekstrak data Dokmil (${file.name}): ${pDetail}`, true);
+    alert(`Terjadi kesalahan saat mengekstrak data dari PDF Dokmil "${file.name}".\nDetail error: ${pDetail}`);
+    updateUploadSequenceUi();
+    return false;
+  }
 }
 
 async function handleDokmilPdfUpload(e) {
+  resetPersonelDanPimpinanFields();
   if (!guardUploadInputChange('dokmil', e)) return;
   const file = e.target.files[0];
   if (!file) return;
@@ -1520,18 +1796,36 @@ function classifyBulkFile(file) {
   const ext = rawName.slice(dotIdx).toLowerCase();
   const baseName = rawName.slice(0, dotIdx).trim();
 
-  if (ext === '.xlsx' && baseName.toLowerCase().startsWith('penawaran-')) {
+  if (ext === '.xlsx' && (baseName.toLowerCase().startsWith('penawaran-') || /penawaran/i.test(baseName))) {
     return 'pen';
   }
   if (['.xlsx', '.xls', '.csv'].includes(ext) && /hps/i.test(baseName)) {
     return 'hps';
   }
   if (ext === '.pdf') {
-    if (baseName.startsWith('Kualifikasi-')) return 'kual';
-    if (baseName.includes('Summary-')) return 'sum';
+    if (baseName.startsWith('Kualifikasi-') || /kualifikasi|sikap/i.test(baseName)) return 'kual';
+    if (baseName.includes('Summary-') || /summary|ringkasan/i.test(baseName)) return 'sum';
     if (/dokmil/i.test(baseName)) return 'dokmil';
   }
   return null;
+}
+
+function detectPdfSlotByContent(text) {
+  if (!text) return null;
+  const norm = String(text).replace(/\s+/g, ' ').trim();
+  if (isDokmilPdfContent(norm)) return 'dokmil';
+  if (/(?:Identitas\s+Peserta|Manajerial|Akta\s+Pendirian|Akta\s+Perubahan|Kualifikasi)/i.test(norm) && /(?:NPWP|Direktur|KTP)/i.test(norm)) {
+    return 'kual';
+  }
+  if (/(?:Nama\s+Tender|Satuan\s+Kerja|Nilai\s+Pagu|Nilai\s+HPS|Summary\s+Report)/i.test(norm)) {
+    return 'sum';
+  }
+  return null;
+}
+
+function renderBulkFolderContents(visibleFiles, slotByFile, masterFormFileName) {
+  const box = document.getElementById('bulk-folder-contents');
+  if (box) box.classList.add('hidden');
 }
 
 function isMasterFormExcelCandidate(file) {
@@ -1570,16 +1864,32 @@ function tryExtractMasterFormFromExcel(file) {
   });
 }
 
+function resetPersonelDanPimpinanFields() {
+  state.namaPimpinan = "";
+  state.namaPelaksana = "";
+  state.namaK3 = "";
+  ["namaPimpinan", "namaPelaksana", "namaK3"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+}
+
 async function handleBulkFolderUpload(e) {
-  const files = Array.from((e && e.target && e.target.files) || []);
+  const rawFiles = Array.from((e && e.target && e.target.files) || []);
+  const files = rawFiles.filter(f => {
+    const nm = (f && f.name ? f.name.trim() : '');
+    if (!nm || nm.startsWith('~$') || nm.startsWith('.')) return false;
+    return !nm.toLowerCase().endsWith('.xml');
+  });
   if (!files.length) return;
+  resetPersonelDanPimpinanFields();
 
   const matched = {};
+  const slotByFile = new Map();
   const pdfFiles = [];
   const masterExcelCandidates = [];
   files.forEach(f => {
-    const rawName = (f && f.name ? f.name.trim() : '');
-    if (!rawName || rawName.startsWith('~$') || rawName.startsWith('.')) return;
+    const rawName = f.name.trim();
     const dotIdx = rawName.lastIndexOf('.');
     const ext = dotIdx >= 0 ? rawName.slice(dotIdx).toLowerCase() : '';
     if (ext === '.pdf') pdfFiles.push(f);
@@ -1587,18 +1897,20 @@ async function handleBulkFolderUpload(e) {
     const slot = classifyBulkFile(f);
     if (slot && !matched[slot]) {
       matched[slot] = f;
+      slotByFile.set(f, slot);
     } else if (!slot && isMasterFormExcelCandidate(f)) {
       masterExcelCandidates.push(f);
     }
   });
 
-  if (!matched.dokmil && pdfFiles.length > 0) {
+  if ((!matched.dokmil || !matched.kual || !matched.sum) && pdfFiles.length > 0) {
     for (const pf of pdfFiles) {
-      if (pf === matched.kual || pf === matched.sum) continue;
+      if (slotByFile.has(pf)) continue;
       const txt = await extractPdfText(pf);
-      if (isDokmilPdfContent(txt)) {
-        matched.dokmil = pf;
-        break;
+      const detectedSlot = detectPdfSlotByContent(txt);
+      if (detectedSlot && !matched[detectedSlot]) {
+        matched[detectedSlot] = pf;
+        slotByFile.set(pf, detectedSlot);
       }
     }
   }
@@ -1675,6 +1987,7 @@ async function handleBulkFolderUpload(e) {
   } else {
     showStatus(`Bulk Upload Folder: ${loadedCount}/5 file${masterInfoNote} terisi. Belum ditemukan di folder: ${missingLabels.join(', ')}`);
   }
+  renderBulkFolderContents(files, slotByFile, masterFormFileName);
   updateUploadSequenceUi();
   updateStepGuardUi();
   if (e && e.target) e.target.value = '';
@@ -1690,7 +2003,9 @@ function populateFormInputs() {
     'evalAdm','evalKual','kpVal','nVal','evalAlat','evalPersonil','evalRkk',
     'alatJenis','alatStatus','namaPelaksana','pengalamanPelaksana','skkPelaksana','namaK3','pengalamanK3','skkK3'
   ];
-  autoFillPimpinanDanJabatan();
+  if (typeof autoFillPimpinanDanJabatan === 'function') autoFillPimpinanDanJabatan();
+  if (state._lastSbu === undefined) state._lastSbu = state.sbu;
+  if (state._lastAlatJenis === undefined) state._lastAlatJenis = state.alatJenis;
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -1706,53 +2021,6 @@ function populateFormInputs() {
     }
     el.value = val;
   });
-}
-
-function normalizeAlatJenisAndVol() {
-  const rawJenis = String(state.alatJenis || '');
-  if (!rawJenis) return;
-
-  const extracted = [];
-  // Extract bracket/parenthesis groups (...), [...], {...}
-  let cleaned = rawJenis.replace(/[(\[{]([^)\]}]*)[)\]}]/g, (match, innerGroup) => {
-    const inner = String(innerGroup || '').trim();
-    if (inner) extracted.push(inner);
-    return ' ';
-  });
-
-  // Extract standalone numbers or number+unit tokens (e.g. 120, 0.5, 3 m3, 2 Unit)
-  const numTokenRegex = /(?:^|\s)(\d+(?:[.,]\d+)?(?:\s*[A-Za-z0-9²³/%-]+)?)(?=\s|$)/g;
-  cleaned = cleaned.replace(numTokenRegex, (match, token) => {
-    const t = String(token || '').trim();
-    if (t) extracted.push(t);
-    return ' ';
-  });
-
-  // Fallback: if any stray digits remain in cleaned, extract contiguous digit runs
-  if (/\d/.test(cleaned)) {
-    cleaned = cleaned.replace(/\d+(?:[.,]\d+)?/g, (numMatch) => {
-      const n = String(numMatch || '').trim();
-      if (n) extracted.push(n);
-      return ' ';
-    });
-  }
-
-  cleaned = cleaned.replace(/\s+/g, ' ').replace(/^[,\-–—\s]+|[,\-–—\s]+$/g, '').trim();
-
-  if (extracted.length > 0) {
-    state.alatJenis = cleaned;
-    const movedStr = extracted.join(', ');
-    const currentVol = String(state.alatVol || '').trim();
-    if (!currentVol) {
-      state.alatVol = movedStr;
-    } else {
-      const existingParts = currentVol.split(',').map(s => s.trim().toLowerCase());
-      const newParts = movedStr.split(',').map(s => s.trim()).filter(p => p && !existingParts.includes(p.toLowerCase()));
-      if (newParts.length > 0) {
-        state.alatVol = `${currentVol}, ${newParts.join(', ')}`;
-      }
-    }
-  }
 }
 
 function readFormInputs() {
@@ -1772,11 +2040,43 @@ function readFormInputs() {
   if (!String(state.alatStatus || '').trim()) {
     state.alatStatus = "Milik Sendiri";
   }
-  normalizeAlatJenisAndVol();
+  if (state._lastSbu !== state.sbu) {
+    state._lastSbu = state.sbu;
+    const mapped = getDefaultAlatBySbu(state.sbu);
+    state.alatJenis = mapped.alatJenis;
+    state.alatVol = mapped.alatVol;
+    state._lastAlatJenis = state.alatJenis;
+    const elJenis = document.getElementById('alatJenis');
+    const elVol = document.getElementById('alatVol');
+    if (elJenis) elJenis.value = state.alatJenis;
+    if (elVol) elVol.value = state.alatVol;
+  } else if (state._lastAlatJenis !== state.alatJenis) {
+    state._lastAlatJenis = state.alatJenis;
+    state.alatVol = getDefaultVolumeByJenisAlat(state.alatJenis);
+    const elVol = document.getElementById('alatVol');
+    if (elVol) elVol.value = state.alatVol;
+  }
   const rawAngka = String(state.nomorSuratAngka || "").replace(/[^0-9]/g, "");
   state.nomorSuratAngka = rawAngka;
   state.prefixSurat = `T-000.3.2/${rawAngka || "0000"}/`;
   state.suffixSurat = "PBJ";
+  updateNoteAlatDokmilUi();
+}
+
+function updateNoteAlatDokmilUi() {
+  const noteEl = document.getElementById("note-alat-dokmil");
+  if (!noteEl) return;
+  if (state._alatEditedManually) {
+    noteEl.classList.add("hidden");
+  } else {
+    noteEl.textContent = "Sesuaikan Alat Dengan DOKMIL";
+    noteEl.classList.remove("hidden");
+  }
+}
+
+function handleAlatJenisEdit() {
+  state._alatEditedManually = true;
+  syncAll();
 }
 
 function ensureJadwalInitialized() {
@@ -1952,6 +2252,8 @@ function downloadTotalSelisihPdf() {
   const tot = computeTotals();
   const namaPaket = String(state.pekerjaan || state.kegiatan || "Paket Pekerjaan").trim() || "Paket Pekerjaan";
   const namaPenyedia = String(state.namaPerusahaan || "-").trim() || "-";
+  const namaPimpinan = String(state.namaPimpinan || "").trim();
+  const jabatanPimpinan = String(state.jabatanPimpinan || "Direktur").trim() || "Direktur";
   const namaPpk = String(state.namaPpk || "-").trim() || "-";
   const namaPp = String(state.namaPp || "-").trim() || "-";
   const totalHpsVal = Number(tot.totHps) || 0;
@@ -1959,7 +2261,7 @@ function downloadTotalSelisihPdf() {
   const totalNegoVal = Number(tot.totNego) || 0;
   const totalSelisihVal = Number(tot.totPen - tot.totNego) || 0;
   const pctHpsVal = Number(tot.pctPen) || 0;
-  const kesimpulanVal = (tot.totPen <= (Number(state.nilaiHps) || 0)) ? "Memenuhi Syarat" : "Tidak Memenuhi Syarat";
+  const kesimpulanVal = '<strong>Memenuhi Syarat</strong> <span style="font-weight:normal;">(Jika Menyetujui Kenaikan Negosiasi Harga Satuan Maksimal 110% dari HPS)</span>';
 
   const printStage = document.getElementById('print-all-stage');
   if (!printStage) return;
@@ -2009,7 +2311,7 @@ function downloadTotalSelisihPdf() {
             <tr>
               <td style="text-align:center;">5</td>
               <td>Kesimpulan</td>
-              <td style="text-align:center;"><strong>${kesimpulanVal}</strong></td>
+              <td style="text-align:center;">${kesimpulanVal}</td>
             </tr>
             <tr style="font-weight:bold; background:#e0f2fe;">
               <td style="text-align:center;">6</td>
@@ -2021,13 +2323,15 @@ function downloadTotalSelisihPdf() {
         <table class="no-border-table" style="width:100%; margin-top:20px; font-size:9.5pt;">
           <tr>
             <td style="width:50%; text-align:center;">
-              <div>Pejabat Pembuat Komitmen (PPK)</div>
+              <div>Penyedia Jasa</div>
+              <div><strong>${namaPenyedia}</strong></div>
               <div style="height:52px;"></div>
-              <div><strong><u>${namaPpk}</u></strong></div>
-              <div>${state.nipPpk || ''}</div>
+              <div><strong><u>${namaPimpinan}</u></strong></div>
+              <div>${jabatanPimpinan}</div>
             </td>
             <td style="width:50%; text-align:center;">
               <div>Pejabat Pengadaan</div>
+              <div>&nbsp;</div>
               <div style="height:52px;"></div>
               <div><strong><u>${namaPp}</u></strong></div>
               <div>${state.nipPp || ''}</div>
@@ -2039,7 +2343,7 @@ function downloadTotalSelisihPdf() {
   `;
 
   const prevTitle = document.title;
-  const safePaketTitle = ("Total Selisih - " + namaPaket).replace(/[\\/:*?"<>|]+/g, "-").trim();
+  const safePaketTitle = ("Total Selisih - " + namaPaket).replace(/[\/:*?"<>|]+/g, "-").trim();
   printStage.innerHTML = pdfSheetHtml;
   document.title = safePaketTitle || prevTitle;
   const restoreTitle = () => {
@@ -3969,11 +4273,13 @@ function parseXmlToState(xmlStr) {
 }
 
 function loadSavedDraft(e) {
+  resetPersonelDanPimpinanFields();
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(evt) {
     try {
+      resetPersonelDanPimpinanFields();
       const rawText = String(evt.target.result || '');
       if (file.name.toLowerCase().endsWith('.json') || rawText.trim().startsWith('{')) {
         const parsed = JSON.parse(rawText);
@@ -4033,8 +4339,8 @@ function resetAllInputsForFreshLoad() {
   state.suffixSurat = "PBJ";
   state.nVal = 0;
 
-  state.alatJenis = "";
-  state.alatVol = "";
+  state.alatJenis = "Concrete Mixer / Molen";
+  state.alatVol = "1 Unit";
   state.alatStatus = "";
   state._skkPelaksanaManual = false;
   state._skkK3Manual = false;
@@ -4257,10 +4563,11 @@ const STEP_LABELS = {
 };
 
 
-const UPLOAD_SEQUENCE = ['hps', 'pen', 'dokmil', 'kual', 'sum'];
+const UPLOAD_SEQUENCE = ['hps', 'pen', 'jdw', 'dokmil', 'kual', 'sum'];
 const UPLOAD_SLOT_NAMES = {
   hps: '1. Upload File HPS (.xlsx / .csv)',
   pen: '2. Upload Penawaran (.xlsx / .csv)',
+  jdw: '3. Upload Jadwal / Tahapan',
   dokmil: '4. Upload Dokmil (.pdf)',
   kual: '5. Upload Kualifikasi SIKAP (.pdf)',
   sum: '6. Upload Summary Report (.pdf)'
@@ -4273,6 +4580,7 @@ function canUploadSlot(slotKey) {
   const f = state.uploadedFlags || {};
   for (let i = 0; i < idx; i++) {
     const prevKey = UPLOAD_SEQUENCE[i];
+    if (prevKey === 'jdw' && (f.jdw || f.dokmil || f.pen)) continue;
     if (!f[prevKey]) return false;
   }
   return true;
@@ -4290,7 +4598,7 @@ function guardUploadInputChange(slotKey, e) {
 function checkUploadStepAllowed(slotKey, ev) {
   if (canUploadSlot(slotKey)) return true;
   const idx = UPLOAD_SEQUENCE.indexOf(slotKey);
-  const prevKey = UPLOAD_SEQUENCE[idx - 1];
+  const prevKey = UPLOAD_SEQUENCE[Math.max(0, idx - 1)];
   const msg = `Upload harus berurutan! Selesaikan "${UPLOAD_SLOT_NAMES[prevKey]}" terlebih dahulu sebelum mengunggah "${UPLOAD_SLOT_NAMES[slotKey]}".`;
   if (ev) {
     ev.preventDefault();
@@ -4302,7 +4610,6 @@ function checkUploadStepAllowed(slotKey, ev) {
     seqBanner.className = 'mb-3 px-3 py-1.5 rounded-lg border border-red-300 bg-red-50 text-red-700 text-[11px] font-semibold flex flex-wrap items-center justify-between gap-2';
     seqText.textContent = msg;
   }
-  alert(msg);
   return false;
 }
 
@@ -4858,6 +5165,8 @@ function syncAll() {
   const prevNo = document.getElementById('preview-no-surat');
   if (prevNo) prevNo.textContent = getNomorSurat('bapp');
   renderJadwalTable();
+  if (typeof updateNoteAlatDokmilUi === 'function') updateNoteAlatDokmilUi();
+  if (typeof renderDatabasePpModal === 'function') renderDatabasePpModal();
   renderItemsTable();
   updateMissingFieldHighlights();
   updateUploadSequenceUi();
