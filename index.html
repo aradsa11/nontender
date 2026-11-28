@@ -211,9 +211,6 @@
           Upload XML
           <input type="file" accept=".xml,.json" class="hidden" onchange="loadSavedDraft(event)">
         </label>
-        <button type="button" id="btn-download-semua-pdf" onclick="downloadSemuaDokumenPdf()" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-md transition cursor-pointer">
-          Download Semua Dokumen PDF
-        </button>
         <a id="btn-panduan-penggunaan" href="https://drive.google.com/drive/folders/1ABdq0M5jRB9U-HWuJ4gyz8izfYomdHrg?usp=sharing" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white rounded-md transition inline-flex items-center">
           Panduan Penggunaan
         </a>
@@ -241,9 +238,10 @@
             Upload Folder
             <input id="inp-bulk-folder" type="file" webkitdirectory directory multiple class="hidden" onchange="handleBulkFolderUpload(event)">
           </label>
-          <a id="btn-contoh-gdrive" href="https://drive.google.com/drive/folders/1kyN69si8oOgmX9aqmVinZsrXvuRPWaNg?usp=drive_link" target="_blank" rel="noopener noreferrer" onclick="openExampleDrive(event)" class="px-3 py-1 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded-md transition inline-flex items-center gap-1">
-            Contoh File (Google Drive)
-          </a>
+          <label class="px-3 py-1 text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-md transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
+            Upload XML
+            <input type="file" accept=".xml,.json" class="hidden" onchange="loadSavedDraft(event)">
+          </label>
           <button type="button" onclick="clearUploadData()" class="px-3 py-1 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-md transition cursor-pointer">
             Bersihkan Upload
           </button>
@@ -297,9 +295,14 @@
     <!-- TABS NAVIGATION -->
     <div id="step-guard-banner" class="mb-3 px-3.5 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold flex flex-wrap items-center justify-between gap-2">
       <span id="step-guard-text">Alur berurutan aktif: lengkapi tahap Upload sebelum melanjutkan ke tahap Edit berikutnya.</span>
-      <button id="btn-step-action" type="button" onclick="handleStepBannerAction()" class="px-2.5 py-1 text-[11px] font-bold bg-amber-700 hover:bg-amber-600 text-white rounded cursor-pointer">
+      <div id="guard-action-cluster" class="inline-flex items-center gap-1.5 shrink-0">
+        <button id="btn-step-action" type="button" onclick="handleStepBannerAction()" class="px-2.5 py-1 text-[11px] font-bold bg-amber-700 hover:bg-amber-600 text-white rounded cursor-pointer">
         Lanjut Tahap Berikutnya
       </button>
+        <button type="button" id="btn-guard-save-xml" onclick="saveXml()" class="hidden px-2.5 py-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded cursor-pointer">
+          Save as XML
+        </button>
+      </div>
     </div>
     <div class="flex flex-wrap gap-1.5 border-b border-slate-300 mb-4">
       <button onclick="switchTab('tab-master')" id="btn-tab-master" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-lg bg-white text-blue-700 border border-b-0 border-slate-300 cursor-pointer">
@@ -526,7 +529,7 @@
             <p class="text-xs text-slate-500">Negosiasi Otomatis Terkoreksi Ke 110% dari HPS</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <button type="button" onclick="downloadTotalSelisihXlsx()" class="px-3 py-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded cursor-pointer">
+            <button type="button" id="btn-download-total-selisih" onclick="downloadTotalSelisihXlsx()" class="hidden px-3 py-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded cursor-pointer">
               Download Total Selisih (.pdf)
             </button>
             <button onclick="addItemRow()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 text-white rounded hover:bg-slate-700 cursor-pointer">+ Tambah Baris</button>
@@ -548,7 +551,7 @@
                 <th class="border p-1.5 w-32 bg-emerald-50">Jumlah Negosiasi 110%</th>
                 <th class="border p-1.5 w-16">% HPS</th>
                 <th class="border p-1.5 w-20">Kesimpulan</th>
-                <th class="border p-1.5 w-32 bg-sky-50">Selisih Penawaran &amp; Nego</th>
+                <th id="th-selisih-pen-nego" class="border p-1.5 w-32 bg-sky-50">Selisih Penawaran &amp; Nego</th>
                 <th class="border p-1.5 w-10">Aksi</th>
               </tr>
             </thead>
@@ -2120,9 +2123,63 @@ function updateJadwal(idx, field, val) {
   syncAll();
 }
 
+function hasOver110OrRedAlertItem() {
+  if (!Array.isArray(state.items)) return false;
+  return state.items.some((it) => {
+    const info = getItemNegoAndTimpangStatus(it);
+    return Boolean(info && (info.isRedAlert || info.pct > 110));
+  });
+}
+
+function syncTotalSelisihDownloadButtons() {
+  const show = hasOver110OrRedAlertItem();
+  const hdrBtn = document.getElementById("btn-download-total-selisih");
+  if (hdrBtn) {
+    if (show) hdrBtn.classList.remove("hidden");
+    else hdrBtn.classList.add("hidden");
+  }
+  const ftrBtn = document.getElementById("btn-footer-download-selisih");
+  if (ftrBtn) {
+    if (show) ftrBtn.classList.remove("hidden");
+    else ftrBtn.classList.add("hidden");
+  }
+}
+
+function hasNonZeroSelisih() {
+  if (!Array.isArray(state.items)) return false;
+  const eps = 1e-6;
+  const hasItemDiff = state.items.some((it) => {
+    const hasVol = it && it.vol !== null && it.vol !== undefined && !isNaN(Number(it.vol));
+    if (!hasVol) return false;
+    const vol = Number(it.vol) || 0;
+    const pen = Number(it.pen) || 0;
+    const jmlPen = vol * pen;
+    const jmlNego = getItemNegoAndTimpangStatus(it).jmlNego;
+    return Math.abs(jmlPen - jmlNego) > eps;
+  });
+  if (hasItemDiff) return true;
+  const tot = computeTotals();
+  return (
+    Math.abs((tot.subPen || 0) - (tot.subNego || 0)) > eps ||
+    Math.abs((tot.ppnPen || 0) - (tot.ppnNego || 0)) > eps ||
+    Math.abs((tot.totPen || 0) - (tot.totNego || 0)) > eps
+  );
+}
+
 function renderItemsTable() {
   const tbody = document.getElementById('items-tbody');
   const tfoot = document.getElementById('items-tfoot');
+  const thSelisih = document.getElementById('th-selisih-pen-nego');
+  const hasOver110OrRedAlert = hasOver110OrRedAlertItem();
+  const showSelisihCol = hasNonZeroSelisih();
+
+  if (thSelisih) {
+    if (showSelisihCol) thSelisih.classList.remove('hidden');
+    else thSelisih.classList.add('hidden');
+  }
+
+  const headerColspan = showSelisihCol ? 12 : 11;
+
   tbody.innerHTML = state.items.map((it, idx) => {
     const isHeader = it.vol === null || it.vol === undefined || isNaN(it.vol);
     const volNum = isHeader ? 0 : (Number(it.vol) || 0);
@@ -2133,7 +2190,7 @@ function renderItemsTable() {
       return `
         <tr class="bg-slate-100 font-bold">
           <td class="border p-1.5 text-center">${it.no}</td>
-          <td class="border p-1.5" colspan="12"><input type="text" value="${it.uraian}" class="w-full bg-transparent font-bold" onchange="updateItem(${idx}, 'uraian', this.value)"></td>
+          <td class="border p-1.5" colspan="${headerColspan}"><input type="text" value="${it.uraian}" class="w-full bg-transparent font-bold" onchange="updateItem(${idx}, 'uraian', this.value)"></td>
           <td class="border p-1.5 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:underline">x</button></td>
         </tr>
       `;
@@ -2153,6 +2210,10 @@ function renderItemsTable() {
       ? "border p-1.5 text-right bg-red-100 text-red-700 font-bold"
       : "border p-1.5 text-right bg-emerald-50/50 font-medium";
 
+    const selisihCellHtml = showSelisihCol
+      ? `<td class="border p-1.5 text-right bg-sky-50/50 font-medium">${fmtRp(jmlPen - jmlNego)}</td>`
+      : ``;
+
     return `
       <tr class="hover:bg-slate-50">
         <td class="border p-1.5 text-center">${it.no}</td>
@@ -2167,13 +2228,31 @@ function renderItemsTable() {
         <td class="${jmlNegoCellClass}">${fmtRp(jmlNego)}</td>
         <td class="border p-1.5 text-center">${pct.toFixed(2)}%</td>
         <td class="border p-1.5 text-center">${statusBadge}</td>
-        <td class="border p-1.5 text-right bg-sky-50/50 font-medium">${fmtRp(jmlPen - jmlNego)}</td>
+        ${selisihCellHtml}
         <td class="border p-1.5 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:underline">x</button></td>
       </tr>
     `;
   }).join('');
 
   const tot = computeTotals();
+  const subSelisihTd = showSelisihCol
+    ? `<td class="border p-2 text-right bg-sky-50">${fmtRp(tot.subPen - tot.subNego)}</td>`
+    : ``;
+  const ppnSelisihTd = showSelisihCol
+    ? `<td class="border p-2 text-right bg-sky-50">${fmtRp(tot.ppnPen - tot.ppnNego)}</td>`
+    : ``;
+  const totSelisihTd = showSelisihCol
+    ? `<td class="border p-2 bg-sky-100">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-right flex-1">
+            <div>${fmtRp(tot.totPen - tot.totNego)}</div>
+            <div class="text-[10px] font-normal text-slate-700 mt-0.5">Total Selisih Negosiasi dan Penawaran</div>
+          </div>
+          ${hasOver110OrRedAlert ? `<button type="button" id="btn-footer-download-selisih" onclick="downloadTotalSelisihXlsx()" title="Download Total Selisih Negosiasi dan Penawaran (.pdf)" class="no-print shrink-0 px-2 py-1 text-[10px] font-semibold bg-sky-700 hover:bg-sky-600 text-white rounded cursor-pointer">Download</button>` : ``}
+        </div>
+      </td>`
+    : ``;
+
   tfoot.innerHTML = `
     <tr>
       <td colspan="5" class="border p-2 text-right">Sub Total</td>
@@ -2183,7 +2262,7 @@ function renderItemsTable() {
       <td class="border p-2 bg-emerald-50"></td>
       <td class="border p-2 text-right bg-emerald-50">${fmtRp(tot.subNego)}</td>
       <td colspan="2" class="border p-2"></td>
-      <td class="border p-2 text-right bg-sky-50">${fmtRp(tot.subPen - tot.subNego)}</td>
+      ${subSelisihTd}
       <td class="border p-2"></td>
     </tr>
     <tr>
@@ -2194,7 +2273,7 @@ function renderItemsTable() {
       <td class="border p-2 bg-emerald-50"></td>
       <td class="border p-2 text-right bg-emerald-50">${fmtRp(tot.ppnNego)}</td>
       <td colspan="2" class="border p-2"></td>
-      <td class="border p-2 text-right bg-sky-50">${fmtRp(tot.ppnPen - tot.ppnNego)}</td>
+      ${ppnSelisihTd}
       <td class="border p-2"></td>
     </tr>
     <tr class="bg-slate-200 text-slate-900">
@@ -2206,20 +2285,11 @@ function renderItemsTable() {
       <td class="border p-2 text-right bg-emerald-100 text-emerald-900">${fmtRp(tot.totNego)}<div class="text-[10px] font-normal text-slate-700 mt-0.5">Total Negosiasi</div></td>
       <td class="border p-2 text-center">${tot.pctPen.toFixed(2)}%</td>
       <td class="border p-2 text-center">${tot.totPen <= state.nilaiHps ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
-      <td class="border p-2 bg-sky-100">
-        <div class="flex items-center justify-between gap-2">
-          <div class="text-right flex-1">
-            <div>${fmtRp(tot.totPen - tot.totNego)}</div>
-            <div class="text-[10px] font-normal text-slate-700 mt-0.5">Total Selisih Negosiasi dan Penawaran</div>
-          </div>
-          <button type="button" onclick="downloadTotalSelisihXlsx()" title="Download Total Selisih Negosiasi dan Penawaran (.xlsx)" class="no-print shrink-0 px-2 py-1 text-[10px] font-semibold bg-sky-700 hover:bg-sky-600 text-white rounded cursor-pointer">
-            Download
-          </button>
-        </div>
-      </td>
+      ${totSelisihTd}
       <td class="border p-2"></td>
     </tr>
   `;
+  syncTotalSelisihDownloadButtons();
 }
 
 function updateItem(idx, key, val) {
@@ -3890,9 +3960,6 @@ function renderPreview() {
         <div class="no-print max-w-[297mm] mx-auto mb-2 px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-xs flex flex-wrap items-center justify-between gap-2">
           <span class="text-xs font-bold text-slate-800">${docObj.title}</span>
           <div class="flex items-center gap-2">
-            <button onclick="downloadSingleDocWord('${docObj.id}')" class="px-2.5 py-1 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded cursor-pointer">
-              Download Word (.doc)
-            </button>
             <button onclick="printSingleDocPdf('${docObj.id}')" class="px-2.5 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded cursor-pointer">
               Download PDF
             </button>
@@ -4778,6 +4845,7 @@ function advanceNextStep() {
 }
 
 function switchTab(tabId) {
+  setTimeout(syncSaveAsXmlVisibility, 0);
   if (tabId !== 'tab-master' && !canAccessTab(tabId)) {
     const idx = STEP_ORDER.indexOf(tabId);
     let firstBlockingStep = STEP_ORDER[0];
@@ -4915,7 +4983,7 @@ function getCurrentExampleDriveUrl() {
 
 function openExampleDrive(ev) {
   const url = getCurrentExampleDriveUrl();
-  const linkEl = document.getElementById("btn-contoh-gdrive");
+  const linkEl = document.getElementById("removed-contoh-gdrive");
   if (linkEl) linkEl.href = url;
   if (ev) {
     window.open(url, "_blank", "noopener,noreferrer");
@@ -5151,6 +5219,7 @@ function handleAktaInfoInput() {
 }
 
 function syncAll() {
+  setTimeout(syncSaveAsXmlVisibility, 0);
   applyPaketPrintTitle();
   readFormInputs();
   updateAktaLabel();
@@ -5658,6 +5727,37 @@ function closeDatabasePpModal() {
   if (modal) modal.classList.add('hidden');
   databasePpClickStep = 0;
 }
+
+function syncSaveAsXmlVisibility() {
+  const xmlBtn = document.getElementById("btn-guard-save-xml");
+  if (!xmlBtn) return;
+
+  const previewTab = document.getElementById("tab-preview");
+  const isPreviewSheetActive = Boolean(previewTab && !previewTab.classList.contains("hidden"));
+
+  const allBtns = Array.from(document.querySelectorAll("button, a"));
+  const hasVisibleDownloadAllPdf = allBtns.some((el) => {
+    if (!el || el.id === "btn-guard-save-xml") return false;
+    const txt = String(el.textContent || "").trim().toLowerCase();
+    if (!txt.includes("download semua dokumen pdf")) return false;
+    if (el.classList.contains("hidden") || el.closest(".hidden")) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+
+  if (isPreviewSheetActive || hasVisibleDownloadAllPdf) {
+    xmlBtn.classList.remove("hidden");
+  } else {
+    xmlBtn.classList.add("hidden");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  syncSaveAsXmlVisibility();
+  window.addEventListener("resize", syncSaveAsXmlVisibility);
+});
 </script>
 </body>
 </html>
