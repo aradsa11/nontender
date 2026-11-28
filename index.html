@@ -211,9 +211,15 @@
           Load XML / JSON
           <input type="file" accept=".xml,.json" class="hidden" onchange="loadSavedDraft(event)">
         </label>
-        <button onclick="printAllDocs()" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-md transition cursor-pointer">
-          Cetak Semua (20 Dokumen) / PDF
+        <button type="button" id="btn-download-semua-pdf" onclick="downloadSemuaDokumenPdf()" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-md transition cursor-pointer">
+          Download Semua Dokumen PDF
         </button>
+        <a id="btn-panduan-penggunaan" href="https://drive.google.com/drive/folders/1ABdq0M5jRB9U-HWuJ4gyz8izfYomdHrg?usp=sharing" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white rounded-md transition inline-flex items-center">
+          Panduan Penggunaan
+        </a>
+        <a href="https://wa.me/6285258137777" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-xs font-medium bg-teal-600 hover:bg-teal-500 text-white rounded-md transition inline-flex items-center">
+          Credit by Aradsa.inc
+        </a>
       </div>
     </div>
   </header>
@@ -225,7 +231,7 @@
     <div id="step-1-upload" class="bg-white rounded-xl shadow-sm border border-slate-300 p-4 mb-5">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
-          <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">1. Upload File Data (Auto-Fill Otomatis ke Seluruh 20 Dokumen)</h2>
+          <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">1. Upload File Data</h2>
           <p class="text-xs text-slate-500">Unggah file Excel HPS, Excel Penawaran SPSE, PDF Summary Report, atau PDF Kualifikasi.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
@@ -313,7 +319,13 @@
     <div id="tab-master" class="tab-panel space-y-5">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="bg-white p-5 rounded-xl border border-slate-300 shadow-sm space-y-3">
-          <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Data Instansi & Paket Pekerjaan (Sheet Master)</h3>
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+            <h3 class="text-sm font-bold text-slate-800">Data Instansi &amp; Paket Pekerjaan (Sheet Master)</h3>
+            <label class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded cursor-pointer">
+              Upload Form
+              <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleUploadInstansiPaketExcel(event)">
+            </label>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div class="sm:col-span-2">
               <label class="font-semibold text-slate-600">SKPD</label>
@@ -346,7 +358,11 @@
                   <option value="APBDP" selected>APBDP</option>
                   <option value="APBD">APBD</option>
                 </select>
-                <input id="tahun" type="text" class="w-1/2 border rounded px-2.5 py-1.5" oninput="syncAll()">
+                <select id="tahun" class="w-1/2 border rounded px-2.5 py-1.5 bg-white" onchange="syncAll()">
+                  <option value="2026" selected>2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                </select>
               </div>
             </div>
             <div>
@@ -355,7 +371,12 @@
             </div>
             <div>
               <label class="font-semibold text-slate-600">Kualifikasi Usaha</label>
-              <input id="kualifikasiUsaha" type="text" class="w-full mt-1 border rounded px-2.5 py-1.5" oninput="syncAll()">
+              <select id="kualifikasiUsaha" class="w-full mt-1 border rounded px-2.5 py-1.5 bg-white" onchange="syncAll()">
+                <option value="Usaha Mikro">Usaha Mikro</option>
+                <option value="Usaha Kecil" selected>Usaha Kecil</option>
+                <option value="Usaha Menengah">Usaha Menengah</option>
+                <option value="Usaha Besar">Usaha Besar</option>
+              </select>
             </div>
             <div>
               <label class="font-semibold text-slate-600">Nilai Pagu (Rp)</label>
@@ -369,7 +390,12 @@
         </div>
 
         <div class="bg-white p-5 rounded-xl border border-slate-300 shadow-sm space-y-3">
-          <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Pejabat Pengadaan, PPK & Data Perusahaan</h3>
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+            <h3 class="text-sm font-bold text-slate-800">Pejabat Pengadaan, PPK &amp; Data Perusahaan</h3>
+            <button type="button" id="btn-database-pp" onclick="handleDatabasePpButtonClick()" class="px-2.5 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded cursor-pointer">
+              Database PP
+            </button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
               <label class="font-semibold text-slate-600">SK. PP</label>
@@ -496,9 +522,14 @@
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
             <h3 class="text-sm font-bold text-slate-800">Koreksi Aritmatik & Negosiasi Penawaran Harga</h3>
-            <p class="text-xs text-slate-500">Perhitungan otomatis Volume, Harga Satuan, Sub Total, PPN 11%, dan Terbilang.</p>
+            <p class="text-xs text-slate-500">Negosiasi Otomatis Terkoreksi Ke 110% dari HPS</p>
           </div>
-          <button onclick="addItemRow()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 text-white rounded hover:bg-slate-700 cursor-pointer">+ Tambah Baris</button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="downloadTotalSelisihXlsx()" class="px-3 py-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded cursor-pointer">
+              Download Total Selisih (.pdf)
+            </button>
+            <button onclick="addItemRow()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 text-white rounded hover:bg-slate-700 cursor-pointer">+ Tambah Baris</button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-xs border-collapse border border-slate-300">
@@ -512,10 +543,11 @@
                 <th class="border p-1.5 w-32">Jumlah HPS</th>
                 <th class="border p-1.5 w-28">Penawaran Sat.</th>
                 <th class="border p-1.5 w-32">Jumlah Penawaran</th>
-                <th class="border p-1.5 w-28 bg-emerald-50">Negosiasi Sat.</th>
-                <th class="border p-1.5 w-32 bg-emerald-50">Jumlah Negosiasi</th>
+                <th class="border p-1.5 w-28 bg-emerald-50">Negosiasi Sat. 110%</th>
+                <th class="border p-1.5 w-32 bg-emerald-50">Jumlah Negosiasi 110%</th>
                 <th class="border p-1.5 w-16">% HPS</th>
                 <th class="border p-1.5 w-20">Kesimpulan</th>
+                <th class="border p-1.5 w-32 bg-sky-50">Selisih Penawaran &amp; Nego</th>
                 <th class="border p-1.5 w-10">Aksi</th>
               </tr>
             </thead>
@@ -613,6 +645,39 @@
             </div>
             <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
+                <label class="font-semibold text-slate-600">Pengalaman Pelaksana (Tahun)</label>
+                <select id="pengalamanPelaksana" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="syncAll()">
+                  <option value="1" selected>1 Tahun</option>
+                  <option value="2">2 Tahun</option>
+                  <option value="3">3 Tahun</option>
+                  <option value="4">4 Tahun</option>
+                  <option value="5">5 Tahun</option>
+                  <option value="6">6 Tahun</option>
+                  <option value="7">7 Tahun</option>
+                  <option value="8">8 Tahun</option>
+                  <option value="9">9 Tahun</option>
+                  <option value="10">10 Tahun</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-semibold text-slate-600">Pengalaman Petugas K3 (Tahun)</label>
+                <select id="pengalamanK3" class="w-full mt-1 border rounded px-2 py-1.5 bg-white" onchange="syncAll()">
+                  <option value="0" selected>0 Tahun</option>
+                  <option value="1">1 Tahun</option>
+                  <option value="2">2 Tahun</option>
+                  <option value="3">3 Tahun</option>
+                  <option value="4">4 Tahun</option>
+                  <option value="5">5 Tahun</option>
+                  <option value="6">6 Tahun</option>
+                  <option value="7">7 Tahun</option>
+                  <option value="8">8 Tahun</option>
+                  <option value="9">9 Tahun</option>
+                  <option value="10">10 Tahun</option>
+                </select>
+              </div>
+            </div>
+            <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
                 <label class="font-semibold text-slate-600">SKK Pelaksana</label>
                 <div class="grid grid-cols-1 gap-1.5 mt-1">
                   <select id="skkPelaksana" class="w-full border rounded px-2 py-1.5 bg-white" onchange="handleManualSkkSelect('pelaksana', this.value)">
@@ -656,6 +721,23 @@
 
   <!-- PRINT ALL CONTAINER -->
   <div id="print-all-stage" class="hidden print-only-container"></div>
+
+  <!-- POPUP DATABASE PP -->
+  <div id="modal-database-pp" class="no-print fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-4" onclick="if(event.target===this) closeDatabasePpModal()">
+    <div class="bg-white rounded-xl border border-slate-300 shadow-xl max-w-md w-full p-5 space-y-4">
+      <div class="flex items-center justify-between border-b pb-2.5">
+        <h4 class="text-sm font-bold text-slate-800">Daftar PP dan PPK</h4>
+        <button type="button" onclick="closeDatabasePpModal()" class="text-slate-500 hover:text-slate-800 text-xs font-bold px-2 py-1 rounded cursor-pointer">✕</button>
+      </div>
+      <div id="database-pp-content" class="space-y-2 text-xs"></div>
+      <div class="flex justify-end pt-2 border-t">
+        <button type="button" onclick="closeDatabasePpModal()" class="px-3 py-1.5 text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 rounded cursor-pointer">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
 
 <script>
 if (typeof pdfjsLib !== 'undefined') {
@@ -719,8 +801,10 @@ const state = {
   alatVol: "",
   alatStatus: "Milik Sendiri",
   namaPelaksana: "",
+  pengalamanPelaksana: 1,
   skkPelaksana: "Pelaksana Lapangan Pekerjaan Saluran Irigasi",
   namaK3: "",
+  pengalamanK3: 0,
   skkK3: "Petugas Keselamatan dan Kesehatan Kerja (K3) Konstruksi",
   activeDoc: "all",
   uploadedFlags: { hps: false, pen: false, jdw: false, kual: false, sum: false, dokmil: false }
@@ -808,13 +892,44 @@ function getJadwalInfo(key) {
   return { ...j, nomor: getNomorSurat(key), dt: parseIndoDate(j.tgl) };
 }
 
+function getItemNegoAndTimpangStatus(it) {
+  const hasVol = it && it.vol !== null && it.vol !== undefined && !isNaN(Number(it.vol));
+  if (!hasVol) {
+    return { isTimpang: false, isRedAlert: false, pct: 0, negoSat: (it && it.nego) || 0, jmlNego: 0 };
+  }
+  const vol = Number(it.vol) || 0;
+  const hps = Number(it.hps) || 0;
+  const pen = Number(it.pen) || 0;
+  const jmlHps = vol * hps;
+  const jmlPen = vol * pen;
+  const pct = jmlHps > 0 ? (jmlPen / jmlHps) * 100 : 0;
+  const pctRounded = Math.round(pct);
+  // Di atas 100% tetap berstatus Timpang; blok merah untuk 111% ke atas (mengantisipasi presisi floating-point seperti 110.99999999999999)
+  const isTimpang = pct > 100;
+  const isRedAlert = pctRounded >= 111 || pct >= 110.999999;
+  // Jika timpang di atas 110% (atau 111% ke atas), Negosiasi Sat. & Jumlah Negosiasi dibuat 110% dari HPS
+  const negoSat = (pct > 110 || isRedAlert) ? (hps * 1.1) : (it.nego !== null && it.nego !== undefined && !isNaN(Number(it.nego)) ? Number(it.nego) : Math.min(pen, hps));
+  const jmlNego = vol * negoSat;
+  return { isTimpang, isRedAlert, pct, negoSat, jmlNego };
+}
+
+function applyAutoNegoCorrectionToItems() {
+  if (!Array.isArray(state.items)) return;
+  state.items.forEach(it => {
+    const hasVol = it && it.vol !== null && it.vol !== undefined && !isNaN(Number(it.vol));
+    if (!hasVol) return;
+    const info = getItemNegoAndTimpangStatus(it);
+    it.nego = info.negoSat;
+  });
+}
+
 function computeTotals() {
   let subHps = 0, subPen = 0, subNego = 0;
   state.items.forEach(it => {
     if (it.vol !== null && !isNaN(it.vol)) {
       subHps += (it.vol || 0) * (it.hps || 0);
       subPen += (it.vol || 0) * (it.pen || 0);
-      subNego += (it.vol || 0) * (it.nego || 0);
+      subNego += getItemNegoAndTimpangStatus(it).jmlNego;
     }
   });
   const ppnHps = subHps * 0.11;
@@ -925,6 +1040,7 @@ function processHpsFile(file) {
       });
       if (parsedItems.length > 0) {
         state.items = parsedItems;
+        applyAutoNegoCorrectionToItems();
         populateFormInputs();
         syncAll();
         showStatus(`Berhasil memuat ${parsedItems.length} baris HPS dari ${file.name}`);
@@ -978,6 +1094,7 @@ function processPenawaranFile(file) {
       });
       if (parsedItems.length > 0) {
         state.items = parsedItems;
+        applyAutoNegoCorrectionToItems();
         populateFormInputs();
         syncAll();
         showStatus(`Berhasil memuat penawaran (${state.namaPerusahaan})`);
@@ -993,6 +1110,12 @@ function processPenawaranFile(file) {
 async function handlePenawaranUpload(e) {
   if (!guardUploadInputChange('pen', e)) return;
   const file = e.target.files[0];
+  const check = validateSpecificUploadFile('pen', file);
+  if (!check.ok) {
+    alert(check.reason);
+    e.target.value = '';
+    return;
+  }
   await processPenawaranFile(file);
 }
 
@@ -1111,6 +1234,12 @@ async function processSummaryPdfFile(file) {
 async function handleSummaryPdfUpload(e) {
   if (!guardUploadInputChange('sum', e)) return;
   const file = e.target.files[0];
+  const check = validateSpecificUploadFile('sum', file);
+  if (!check.ok) {
+    alert(check.reason);
+    e.target.value = '';
+    return;
+  }
   await processSummaryPdfFile(file);
 }
 
@@ -1186,6 +1315,12 @@ async function processKualifikasiPdfFile(file) {
 async function handleKualifikasiPdfUpload(e) {
   if (!guardUploadInputChange('kual', e)) return;
   const file = e.target.files[0];
+  const check = validateSpecificUploadFile('kual', file);
+  if (!check.ok) {
+    alert(check.reason);
+    e.target.value = '';
+    return;
+  }
   await processKualifikasiPdfFile(file);
 }
 
@@ -1315,7 +1450,65 @@ async function processDokmilPdfFile(file) {
 async function handleDokmilPdfUpload(e) {
   if (!guardUploadInputChange('dokmil', e)) return;
   const file = e.target.files[0];
+  if (!file) return;
+  const dotIdx = file.name.lastIndexOf('.');
+  const ext = dotIdx >= 0 ? file.name.slice(dotIdx).toLowerCase() : '';
+  const baseName = dotIdx >= 0 ? file.name.slice(0, dotIdx).trim() : file.name.trim();
+  if (ext !== '.pdf') {
+    alert("File Dokmil wajib berformat .pdf.");
+    e.target.value = '';
+    return;
+  }
+  if (!/dokmil/i.test(baseName)) {
+    const txt = await extractPdfText(file);
+    if (!isDokmilPdfContent(txt)) {
+      alert("Nama file Dokmil tidak mengandung kata 'dokmil' dan isi PDF tidak sesuai dengan Dokmil.");
+      e.target.value = '';
+      return;
+    }
+  }
   await processDokmilPdfFile(file);
+}
+
+function isDokmilPdfContent(text) {
+  if (!text) return false;
+  const normalized = String(text).replace(/\s+/g, ' ').trim();
+  const hasDokmilKeywords =
+    /(?:dokmil|dokumen\s+pemilihan|nama\s+paket\s+pekerjaan|pagu\s+anggaran|harga\s+perkiraan\s+sendiri\s*\(hps\)|memiliki\s+izin\s+usaha|memiliki\s+sertifikat\s+badan\s+usaha|subklasifikasi)/i.test(normalized);
+  const hasSuratOrKbliOrAlat =
+    /(?:t[\s~\-–—]*000\s*\.\s*3\s*\.\s*2|kbli|bs\d{3}|bg\d{3}|pelaksana\s+\d+\s*tahun|petugas\s+k3)/i.test(normalized);
+  return hasDokmilKeywords && hasSuratOrKbliOrAlat;
+}
+
+function validateSpecificUploadFile(slot, file, extractedText = "") {
+  if (!file || !file.name) return { ok: false, reason: "File tidak valid." };
+  const rawName = file.name.trim();
+  const dotIdx = rawName.lastIndexOf('.');
+  const ext = dotIdx >= 0 ? rawName.slice(dotIdx).toLowerCase() : "";
+  const baseName = dotIdx >= 0 ? rawName.slice(0, dotIdx).trim() : rawName.trim();
+
+  if (slot === 'pen') {
+    if (ext !== '.xlsx' || !baseName.toLowerCase().startsWith('penawaran-')) {
+      return { ok: false, reason: "File Penawaran wajib berformat .xlsx dan nama file diawali 'penawaran-'." };
+    }
+  } else if (slot === 'kual') {
+    if (ext !== '.pdf' || !baseName.startsWith('Kualifikasi-')) {
+      return { ok: false, reason: "File Kualifikasi wajib berformat .pdf dan nama file diawali 'Kualifikasi-'." };
+    }
+  } else if (slot === 'sum') {
+    if (ext !== '.pdf' || !baseName.includes('Summary-')) {
+      return { ok: false, reason: "File Summary wajib berformat .pdf dan nama file mengandung 'Summary-'." };
+    }
+  } else if (slot === 'dokmil') {
+    if (ext !== '.pdf') {
+      return { ok: false, reason: "File Dokmil wajib berformat .pdf." };
+    }
+    const hasDokmilInName = /dokmil/i.test(baseName);
+    if (!hasDokmilInName && !isDokmilPdfContent(extractedText)) {
+      return { ok: false, reason: "File PDF Dokmil tidak mengandung kata 'dokmil' pada nama file dan isi dalamnya tidak sama dengan Dokmil." };
+    }
+  }
+  return { ok: true, reason: "" };
 }
 
 function classifyBulkFile(file) {
@@ -1326,21 +1519,56 @@ function classifyBulkFile(file) {
   const dotIdx = rawName.lastIndexOf('.');
   if (dotIdx < 0) return null;
   const ext = rawName.slice(dotIdx).toLowerCase();
-  const baseName = rawName.slice(0, dotIdx).trim().toLowerCase();
+  const baseName = rawName.slice(0, dotIdx).trim();
 
-  const isSpreadsheet = ['.xlsx', '.xls', '.csv'].includes(ext);
-  const isPdf = ext === '.pdf';
-
-  if (isSpreadsheet) {
-    if (/hps/i.test(baseName)) return 'hps';
-    if (/penawaran/i.test(baseName)) return 'pen';
-      }
-  if (isPdf) {
+  if (ext === '.xlsx' && baseName.toLowerCase().startsWith('penawaran-')) {
+    return 'pen';
+  }
+  if (['.xlsx', '.xls', '.csv'].includes(ext) && /hps/i.test(baseName)) {
+    return 'hps';
+  }
+  if (ext === '.pdf') {
+    if (baseName.startsWith('Kualifikasi-')) return 'kual';
+    if (baseName.includes('Summary-')) return 'sum';
     if (/dokmil/i.test(baseName)) return 'dokmil';
-    if (/kualifikasi/i.test(baseName)) return 'kual';
-    if (/summary/i.test(baseName)) return 'sum';
   }
   return null;
+}
+
+function isMasterFormExcelCandidate(file) {
+  if (!file || !file.name) return false;
+  const rawName = file.name.trim();
+  if (rawName.startsWith('~$') || rawName.startsWith('.')) return false;
+  const dotIdx = rawName.lastIndexOf('.');
+  if (dotIdx < 0) return false;
+  const ext = rawName.slice(dotIdx).toLowerCase();
+  if (!['.xlsx', '.xls', '.csv'].includes(ext)) return false;
+  const baseName = rawName.slice(0, dotIdx).trim().toLowerCase();
+  if (baseName.startsWith('penawaran-') || /hps/i.test(baseName)) return false;
+  return true;
+}
+
+function tryExtractMasterFormFromExcel(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(0);
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: 'binary' });
+        let totalApplied = 0;
+        wb.SheetNames.forEach(sheetName => {
+          const ws = wb.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          totalApplied += applyKeyValueRowsToState(rows, ALL_MASTER_FORM_KEY_ALIASES);
+        });
+        resolve(totalApplied);
+      } catch (err) {
+        resolve(0);
+      }
+    };
+    reader.onerror = () => resolve(0);
+    reader.readAsBinaryString(file);
+  });
 }
 
 async function handleBulkFolderUpload(e) {
@@ -1348,24 +1576,62 @@ async function handleBulkFolderUpload(e) {
   if (!files.length) return;
 
   const matched = {};
+  const pdfFiles = [];
+  const masterExcelCandidates = [];
   files.forEach(f => {
+    const rawName = (f && f.name ? f.name.trim() : '');
+    if (!rawName || rawName.startsWith('~$') || rawName.startsWith('.')) return;
+    const dotIdx = rawName.lastIndexOf('.');
+    const ext = dotIdx >= 0 ? rawName.slice(dotIdx).toLowerCase() : '';
+    if (ext === '.pdf') pdfFiles.push(f);
+
     const slot = classifyBulkFile(f);
     if (slot && !matched[slot]) {
       matched[slot] = f;
+    } else if (!slot && isMasterFormExcelCandidate(f)) {
+      masterExcelCandidates.push(f);
     }
   });
 
+  if (!matched.dokmil && pdfFiles.length > 0) {
+    for (const pf of pdfFiles) {
+      if (pf === matched.kual || pf === matched.sum) continue;
+      const txt = await extractPdfText(pf);
+      if (isDokmilPdfContent(txt)) {
+        matched.dokmil = pf;
+        break;
+      }
+    }
+  }
+
+  // Cek apakah di folder terdapat file Excel Data Isian Form (seperti Data Isian Evaluasi Kontruksi Non Tender.xlsx)
+  let masterFormLoadedCount = 0;
+  let masterFormFileName = '';
+  // Prioritaskan nama file yang mengandung kata 'data isian' / 'isian' / 'master'
+  masterExcelCandidates.sort((a, b) => {
+    const score = (fn) => /data\s*isian|isian|master|instansi/i.test(fn) ? 0 : 1;
+    return score(a.name) - score(b.name);
+  });
+  for (const mf of masterExcelCandidates) {
+    const applied = await tryExtractMasterFormFromExcel(mf);
+    if (applied > 0) {
+      masterFormLoadedCount += applied;
+      masterFormFileName = mf.name;
+      break;
+    }
+  }
+
   const matchedKeys = UPLOAD_SEQUENCE.filter(k => Boolean(matched[k]));
-  if (matchedKeys.length === 0) {
+  if (matchedKeys.length === 0 && masterFormLoadedCount === 0) {
     alert(
-      'Tidak ditemukan file yang sesuai format nama depan & ekstensi di dalam folder tersebut.\n\n' +
-      'Format nama depan file yang dikenali:\n' +
-      '1. HPS... (.xlsx / .xls / .csv)\n' +
-      '2. Penawaran... (.xlsx / .xls / .csv)\n' +
-      '3. Jadwal... (.xlsx / .xls / .csv)\n' +
-      '4. Dokmil... (.pdf)\n' +
-      '5. Kualifikasi... (.pdf)\n' +
-      '6. Summary... (.pdf)'
+      'Tidak ditemukan file yang sesuai aturan nama & format di dalam folder tersebut.\n\n' +
+      'Aturan file yang dikenali:\n' +
+      '- HPS: nama mengandung HPS (.xlsx / .xls / .csv)\n' +
+      '- Penawaran: nama diawali penawaran- (.xlsx)\n' +
+      '- Kualifikasi: nama diawali Kualifikasi- (.pdf)\n' +
+      '- Summary: nama mengandung Summary- (.pdf)\n' +
+      '- Dokmil: nama mengandung dokmil atau isi sama dengan Dokmil (.pdf)\n' +
+      '- Data Isian Form: file Excel (.xlsx/.xls/.csv) berisi label SKPD, BPBJ, Daerah, SK PP, PP, PPK, dll.'
     );
     if (e && e.target) e.target.value = '';
     return;
@@ -1387,14 +1653,28 @@ async function handleBulkFolderUpload(e) {
     }
   }
 
+  // Terapkan kembali data isian form master dari folder jika ada agar nilai SKPD/PP/PPK tetap sesuai file isian tersebut
+  if (masterFormLoadedCount > 0 && masterFormFileName) {
+    const mfObj = masterExcelCandidates.find(x => x.name === masterFormFileName);
+    if (mfObj) {
+      await tryExtractMasterFormFromExcel(mfObj);
+    }
+    populateFormInputs();
+    syncAll();
+  }
+
   const missingLabels = UPLOAD_SEQUENCE
     .filter(k => !matched[k])
     .map(k => UPLOAD_SLOT_NAMES[k]);
 
+  const masterInfoNote = masterFormLoadedCount > 0
+    ? ` + ${masterFormLoadedCount} isian form dari ${masterFormFileName}`
+    : '';
+
   if (missingLabels.length === 0) {
-    showStatus(`Bulk Upload Folder berhasil: seluruh ${loadedCount}/6 file urutan terisi otomatis!`);
+    showStatus(`Bulk Upload Folder berhasil: seluruh ${loadedCount}/5 file urutan${masterInfoNote} terisi otomatis!`);
   } else {
-    showStatus(`Bulk Upload Folder: ${loadedCount}/6 file terisi. Belum ditemukan di folder: ${missingLabels.join(', ')}`);
+    showStatus(`Bulk Upload Folder: ${loadedCount}/5 file${masterInfoNote} terisi. Belum ditemukan di folder: ${missingLabels.join(', ')}`);
   }
   updateUploadSequenceUi();
   updateStepGuardUi();
@@ -1409,7 +1689,7 @@ function populateFormInputs() {
     'namaPerusahaan','npwp','namaPimpinan','jabatanPimpinan','alamatPerusahaan','kbli','sbu','aktaInfo',
     'nomorSuratAngka','jmlPendaftar','jmlPenawar','jmlLengkap',
     'evalAdm','evalKual','kpVal','nVal','evalAlat','evalPersonil','evalRkk',
-    'alatJenis','alatStatus','namaPelaksana','skkPelaksana','namaK3','skkK3'
+    'alatJenis','alatStatus','namaPelaksana','pengalamanPelaksana','skkPelaksana','namaK3','pengalamanK3','skkK3'
   ];
   autoFillPimpinanDanJabatan();
   fields.forEach(id => {
@@ -1477,14 +1757,14 @@ function normalizeAlatJenisAndVol() {
 }
 
 function readFormInputs() {
-  const numFields = ['nilaiPagu','nilaiHps','jmlPendaftar','jmlPenawar','jmlLengkap','kpVal','nVal'];
+  const numFields = ['nilaiPagu','nilaiHps','jmlPendaftar','jmlPenawar','jmlLengkap','kpVal','nVal','pengalamanPelaksana','pengalamanK3'];
   const fields = [
     'skpd','bpbj','daerah','kegiatan','pekerjaan','lokasi','sumberDana','tahun','metode','kualifikasiUsaha',
     'nilaiPagu','nilaiHps','skPp','tglSkPp','namaPp','nipPp','namaPpk','nipPpk',
     'namaPerusahaan','npwp','namaPimpinan','jabatanPimpinan','alamatPerusahaan','kbli','sbu','aktaInfo',
     'nomorSuratAngka','jmlPendaftar','jmlPenawar','jmlLengkap',
     'evalAdm','evalKual','kpVal','nVal','evalAlat','evalPersonil','evalRkk',
-    'alatJenis','alatStatus','namaPelaksana','skkPelaksana','namaK3','skkK3'
+    'alatJenis','alatStatus','namaPelaksana','pengalamanPelaksana','skkPelaksana','namaK3','pengalamanK3','skkK3'
   ];
   fields.forEach(id => {
     const el = document.getElementById(id);
@@ -1500,7 +1780,26 @@ function readFormInputs() {
   state.suffixSurat = "PBJ";
 }
 
+function ensureJadwalInitialized() {
+  const defaultJadwal = [
+    { key: "dok", label: "No. Dokumen", kode: "Dok", tgl: "", waktu: "" },
+    { key: "bapp", label: "Ba Pemb Penawaran", kode: "Ba Pemb Penawaran", tgl: "", waktu: "" },
+    { key: "und", label: "Und Kla. Teknis & Nego", kode: "Und Kla. Teknis & Nego", tgl: "", waktu: "" },
+    { key: "baep", label: "BAEP", kode: "BAEP", tgl: "", waktu: "" },
+    { key: "baklar", label: "BA Klarifikasi", kode: "BA Klarifikasi", tgl: "", waktu: "" },
+    { key: "bahn", label: "BAHN", kode: "BAHN", tgl: "", waktu: "" },
+    { key: "bahp", label: "BAHP", kode: "BAHP", tgl: "", waktu: "" },
+    { key: "ttp", label: "Ttp Penetapan", kode: "Ttp Penetapan", tgl: "", waktu: "" },
+    { key: "peng", label: "Pengumuman Pemenang", kode: "Pengumuman Pemenang", tgl: "", waktu: "" },
+    { key: "bast", label: "BAST", kode: "BAST", tgl: "", waktu: "" }
+  ];
+  if (!Array.isArray(state.jadwal) || state.jadwal.length === 0) {
+    state.jadwal = defaultJadwal.map(x => ({ ...x }));
+  }
+}
+
 function renderJadwalTable() {
+  ensureJadwalInitialized();
   const tbody = document.getElementById('jadwal-tbody');
   tbody.innerHTML = state.jadwal.map((j, idx) => {
     const dt = parseIndoDate(j.tgl);
@@ -1527,22 +1826,33 @@ function renderItemsTable() {
   const tfoot = document.getElementById('items-tfoot');
   tbody.innerHTML = state.items.map((it, idx) => {
     const isHeader = it.vol === null || it.vol === undefined || isNaN(it.vol);
-    if (isHeader) {
+    const volNum = isHeader ? 0 : (Number(it.vol) || 0);
+    const hpsVal = Number(it.hps) || 0;
+    const jmlHps = volNum * hpsVal;
+    const isEmptyHpsRow = isHeader || (hpsVal === 0 && jmlHps === 0);
+    if (isEmptyHpsRow) {
       return `
         <tr class="bg-slate-100 font-bold">
           <td class="border p-1.5 text-center">${it.no}</td>
-          <td class="border p-1.5" colspan="11"><input type="text" value="${it.uraian}" class="w-full bg-transparent font-bold" onchange="updateItem(${idx}, 'uraian', this.value)"></td>
-          <td class="border p-1.5 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:underline">Hapus</button></td>
+          <td class="border p-1.5" colspan="12"><input type="text" value="${it.uraian}" class="w-full bg-transparent font-bold" onchange="updateItem(${idx}, 'uraian', this.value)"></td>
+          <td class="border p-1.5 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:underline">x</button></td>
         </tr>
       `;
     }
-    const jmlHps = it.vol * (it.hps || 0);
     const jmlPen = it.vol * (it.pen || 0);
-    const jmlNego = it.vol * (it.nego || 0);
-    const pct = jmlHps > 0 ? (jmlPen / jmlHps) * 100 : 0;
+    const negoInfo = getItemNegoAndTimpangStatus(it);
+    const negoSatDisplay = negoInfo.negoSat;
+    const jmlNego = negoInfo.jmlNego;
+    const pct = negoInfo.pct;
+    const isTimpang = negoInfo.isTimpang;
+    const isRedAlert = negoInfo.isRedAlert;
     let statusBadge = `<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Wajar</span>`;
-    if (pct > 110) statusBadge = `<span class="px-1.5 py-0.5 rounded bg-red-100 text-red-800">Timpang</span>`;
+    if (isTimpang) statusBadge = `<span class="px-1.5 py-0.5 rounded ${isRedAlert ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'} font-bold">Timpang</span>`;
     else if (pct < 80) statusBadge = `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Rendah</span>`;
+
+    const jmlNegoCellClass = isRedAlert
+      ? "border p-1.5 text-right bg-red-100 text-red-700 font-bold"
+      : "border p-1.5 text-right bg-emerald-50/50 font-medium";
 
     return `
       <tr class="hover:bg-slate-50">
@@ -1554,10 +1864,11 @@ function renderItemsTable() {
         <td class="border p-1.5 text-right">${fmtRp(jmlHps)}</td>
         <td class="border p-1"><input type="number" step="any" value="${it.pen}" class="w-full text-right border rounded px-1 py-0.5" onchange="updateItem(${idx}, 'pen', Number(this.value))"></td>
         <td class="border p-1.5 text-right">${fmtRp(jmlPen)}</td>
-        <td class="border p-1 bg-emerald-50/50"><input type="number" step="any" value="${it.nego}" class="w-full text-right border border-emerald-300 rounded px-1 py-0.5 bg-white" onchange="updateItem(${idx}, 'nego', Number(this.value))"></td>
-        <td class="border p-1.5 text-right bg-emerald-50/50 font-medium">${fmtRp(jmlNego)}</td>
+        <td class="border p-1 ${isRedAlert ? 'bg-red-50' : 'bg-emerald-50/50'}"><input type="number" step="any" value="${negoSatDisplay}" class="w-full text-right border ${isRedAlert ? 'border-red-400 text-red-700 font-semibold' : 'border-emerald-300'} rounded px-1 py-0.5 bg-white" onchange="updateItem(${idx}, 'nego', Number(this.value))"></td>
+        <td class="${jmlNegoCellClass}">${fmtRp(jmlNego)}</td>
         <td class="border p-1.5 text-center">${pct.toFixed(2)}%</td>
         <td class="border p-1.5 text-center">${statusBadge}</td>
+        <td class="border p-1.5 text-right bg-sky-50/50 font-medium">${fmtRp(jmlPen - jmlNego)}</td>
         <td class="border p-1.5 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:underline">x</button></td>
       </tr>
     `;
@@ -1572,7 +1883,9 @@ function renderItemsTable() {
       <td class="border p-2 text-right">${fmtRp(tot.subPen)}</td>
       <td class="border p-2 bg-emerald-50"></td>
       <td class="border p-2 text-right bg-emerald-50">${fmtRp(tot.subNego)}</td>
-      <td colspan="3" class="border p-2"></td>
+      <td colspan="2" class="border p-2"></td>
+      <td class="border p-2 text-right bg-sky-50">${fmtRp(tot.subPen - tot.subNego)}</td>
+      <td class="border p-2"></td>
     </tr>
     <tr>
       <td colspan="5" class="border p-2 text-right">PPN 11 %</td>
@@ -1581,28 +1894,171 @@ function renderItemsTable() {
       <td class="border p-2 text-right">${fmtRp(tot.ppnPen)}</td>
       <td class="border p-2 bg-emerald-50"></td>
       <td class="border p-2 text-right bg-emerald-50">${fmtRp(tot.ppnNego)}</td>
-      <td colspan="3" class="border p-2"></td>
+      <td colspan="2" class="border p-2"></td>
+      <td class="border p-2 text-right bg-sky-50">${fmtRp(tot.ppnPen - tot.ppnNego)}</td>
+      <td class="border p-2"></td>
     </tr>
     <tr class="bg-slate-200 text-slate-900">
       <td colspan="5" class="border p-2 text-right">T O T A L</td>
-      <td class="border p-2 text-right">${fmtRp(tot.totHps)}</td>
+      <td class="border p-2 text-right">${fmtRp(tot.totHps)}<div class="text-[10px] font-normal text-slate-600 mt-0.5">Total HPS</div></td>
       <td class="border p-2"></td>
-      <td class="border p-2 text-right text-blue-800">${fmtRp(tot.totPen)}</td>
+      <td class="border p-2 text-right text-blue-800">${fmtRp(tot.totPen)}<div class="text-[10px] font-normal text-slate-600 mt-0.5">Total Penawaran</div></td>
       <td class="border p-2 bg-emerald-100"></td>
-      <td class="border p-2 text-right bg-emerald-100 text-emerald-900">${fmtRp(tot.totNego)}</td>
+      <td class="border p-2 text-right bg-emerald-100 text-emerald-900">${fmtRp(tot.totNego)}<div class="text-[10px] font-normal text-slate-700 mt-0.5">Total Negosiasi</div></td>
       <td class="border p-2 text-center">${tot.pctPen.toFixed(2)}%</td>
-      <td colspan="2" class="border p-2 text-center">${tot.totPen <= state.nilaiHps ? 'MS' : 'TMS'}</td>
+      <td class="border p-2 text-center">${tot.totPen <= state.nilaiHps ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
+      <td class="border p-2 bg-sky-100">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-right flex-1">
+            <div>${fmtRp(tot.totPen - tot.totNego)}</div>
+            <div class="text-[10px] font-normal text-slate-700 mt-0.5">Total Selisih Negosiasi dan Penawaran</div>
+          </div>
+          <button type="button" onclick="downloadTotalSelisihXlsx()" title="Download Total Selisih Negosiasi dan Penawaran (.xlsx)" class="no-print shrink-0 px-2 py-1 text-[10px] font-semibold bg-sky-700 hover:bg-sky-600 text-white rounded cursor-pointer">
+            Download
+          </button>
+        </div>
+      </td>
+      <td class="border p-2"></td>
     </tr>
   `;
 }
 
 function updateItem(idx, key, val) {
   state.items[idx][key] = val;
-  if (key === 'pen') {
-    const hps = state.items[idx].hps;
-    state.items[idx].nego = (hps !== null && val !== null) ? Math.min(val, hps) : val;
+  const it = state.items[idx];
+  const hasVol = it && it.vol !== null && it.vol !== undefined && !isNaN(Number(it.vol));
+  if (hasVol) {
+    if (key === 'pen' || key === 'hps' || key === 'vol') {
+      const info = getItemNegoAndTimpangStatus(it);
+      if (info.isTimpang) {
+        it.nego = info.negoSat;
+      } else if (key === 'pen') {
+        const hps = Number(it.hps) || 0;
+        const penVal = Number(val) || 0;
+        it.nego = Math.min(penVal, hps);
+      }
+    } else if (key === 'nego') {
+      const info = getItemNegoAndTimpangStatus(it);
+      if (info.isTimpang) {
+        it.nego = info.negoSat;
+      }
+    }
   }
   syncAll();
+}
+
+
+function downloadTotalSelisihPdf() {
+  readFormInputs();
+  const tot = computeTotals();
+  const namaPaket = String(state.pekerjaan || state.kegiatan || "Paket Pekerjaan").trim() || "Paket Pekerjaan";
+  const namaPenyedia = String(state.namaPerusahaan || "-").trim() || "-";
+  const namaPpk = String(state.namaPpk || "-").trim() || "-";
+  const namaPp = String(state.namaPp || "-").trim() || "-";
+  const totalHpsVal = Number(tot.totHps) || 0;
+  const totalPenVal = Number(tot.totPen) || 0;
+  const totalNegoVal = Number(tot.totNego) || 0;
+  const totalSelisihVal = Number(tot.totPen - tot.totNego) || 0;
+  const pctHpsVal = Number(tot.pctPen) || 0;
+  const kesimpulanVal = (tot.totPen <= (Number(state.nilaiHps) || 0)) ? "Memenuhi Syarat" : "Tidak Memenuhi Syarat";
+
+  const printStage = document.getElementById('print-all-stage');
+  if (!printStage) return;
+
+  const pdfSheetHtml = `
+    <div class="print-page-wrap print-page-portrait">
+      <div class="paper-a4">
+        ${kopSuratHtml()}
+        <div style="text-align:center; font-weight:bold; font-size:12.5pt; margin-bottom:10px;">
+          REKAPITULASI TOTAL SELISIH NEGOSIASI DAN PENAWARAN
+        </div>
+        <table class="no-border-table" style="width:100%; margin-bottom:10px; font-size:10pt;">
+          <tr><td style="width:205px;"><strong>Nama Paket Pekerjaan</strong></td><td style="width:12px;">:</td><td><strong>${namaPaket}</strong></td></tr>
+          <tr><td><strong>Nama Perusahaan Penyedia</strong></td><td>:</td><td>${namaPenyedia}</td></tr>
+          <tr><td><strong>Nama PPK</strong></td><td>:</td><td>${namaPpk}</td></tr>
+          <tr><td><strong>Nama Pejabat Pengadaan</strong></td><td>:</td><td>${namaPp}</td></tr>
+        </table>
+        <table class="doc-table" style="font-size:9.5pt;">
+          <thead>
+            <tr>
+              <th style="width:45px;">No</th>
+              <th>Uraian</th>
+              <th style="width:190px;">Nilai (Rp) / Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align:center;">1</td>
+              <td>Total HPS</td>
+              <td style="text-align:right;">${fmtRp(totalHpsVal)}</td>
+            </tr>
+            <tr>
+              <td style="text-align:center;">2</td>
+              <td>Total Penawaran</td>
+              <td style="text-align:right;">${fmtRp(totalPenVal)}</td>
+            </tr>
+            <tr>
+              <td style="text-align:center;">3</td>
+              <td>Total Negosiasi</td>
+              <td style="text-align:right;">${fmtRp(totalNegoVal)}</td>
+            </tr>
+            <tr>
+              <td style="text-align:center;">4</td>
+              <td>% HPS</td>
+              <td style="text-align:center;">${pctHpsVal.toFixed(2)}%</td>
+            </tr>
+            <tr>
+              <td style="text-align:center;">5</td>
+              <td>Kesimpulan</td>
+              <td style="text-align:center;"><strong>${kesimpulanVal}</strong></td>
+            </tr>
+            <tr style="font-weight:bold; background:#e0f2fe;">
+              <td style="text-align:center;">6</td>
+              <td>Total Selisih Negosiasi dan Penawaran</td>
+              <td style="text-align:right;">${fmtRp(totalSelisihVal)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="no-border-table" style="width:100%; margin-top:20px; font-size:9.5pt;">
+          <tr>
+            <td style="width:50%; text-align:center;">
+              <div>Pejabat Pembuat Komitmen (PPK)</div>
+              <div style="height:52px;"></div>
+              <div><strong><u>${namaPpk}</u></strong></div>
+              <div>${state.nipPpk || ''}</div>
+            </td>
+            <td style="width:50%; text-align:center;">
+              <div>Pejabat Pengadaan</div>
+              <div style="height:52px;"></div>
+              <div><strong><u>${namaPp}</u></strong></div>
+              <div>${state.nipPp || ''}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  `;
+
+  const prevTitle = document.title;
+  const safePaketTitle = ("Total Selisih - " + namaPaket).replace(/[\\/:*?"<>|]+/g, "-").trim();
+  printStage.innerHTML = pdfSheetHtml;
+  document.title = safePaketTitle || prevTitle;
+  const restoreTitle = () => {
+    document.title = prevTitle;
+    window.removeEventListener("afterprint", restoreTitle);
+  };
+  window.addEventListener("afterprint", restoreTitle);
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      if (document.title !== prevTitle) document.title = prevTitle;
+      renderPreview();
+    }, 1500);
+  }, 60);
+}
+
+function downloadTotalSelisihXlsx() {
+  downloadTotalSelisihPdf();
 }
 
 function addItemRow() {
@@ -2058,10 +2514,10 @@ function buildAllDocuments() {
               <tr>
                 <td style="text-align:center;">1</td>
                 <td>Pelaksana</td>
-                <td style="text-align:center;">1 Tahun</td>
+                <td style="text-align:center;">${state.pengalamanPelaksana} Tahun</td>
                 <td>Pelaksana Lapangan Pekerjaan Drainase Perkotaan</td>
                 <td>Pelaksana<br><small>Nama : ${state.namaPelaksana}</small></td>
-                <td style="text-align:center;">1 Tahun</td>
+                <td style="text-align:center;">${state.pengalamanPelaksana} Tahun</td>
                 <td>${state.skkPelaksana}</td>
                 <td style="text-align:center;">${symPo(state.evalPersonil)}</td>
                 <td style="text-align:center;">${state.evalPersonil === 'P' ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'}</td>
@@ -2070,10 +2526,10 @@ function buildAllDocuments() {
               <tr>
                 <td style="text-align:center;">2</td>
                 <td>Petugas K3</td>
-                <td style="text-align:center;">0 Tahun</td>
+                <td style="text-align:center;">${state.pengalamanK3} Tahun</td>
                 <td>SKK Petugas K3</td>
                 <td>Petugas K3<br><small>Nama : ${state.namaK3}</small></td>
-                <td style="text-align:center;">0 Tahun</td>
+                <td style="text-align:center;">${state.pengalamanK3} Tahun</td>
                 <td>${state.skkK3}</td>
                 <td style="text-align:center;">&#10003;</td>
                 <td style="text-align:center;">Memenuhi Syarat</td>
@@ -2622,6 +3078,7 @@ function buildAllDocuments() {
                 if (it.vol === null || isNaN(it.vol)) {
                   return `<tr class="kt-row-item" style="font-weight:bold; background:#f3f4f6; break-inside:avoid; page-break-inside:avoid;"><td style="text-align:center; padding:2px 3px;">${it.no}</td><td colspan="17" style="padding:2px 4px;">${it.uraian}</td></tr>`;
                 }
+                const ktInfo = getItemNegoAndTimpangStatus(it);
                 return `
                   <tr class="kt-row-item" style="break-inside:avoid; page-break-inside:avoid;">
                     <td style="text-align:center; padding:2px 2px;">${it.no}</td>
@@ -2640,8 +3097,8 @@ function buildAllDocuments() {
                     <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.pen)}</td>
                     <td style="text-align:right; padding:2px 2px;">${fmtVol(it.vol)}</td>
                     <td style="text-align:center; padding:2px 2px;">${it.sat}</td>
-                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.nego)}</td>
-                    <td style="text-align:right; padding:2px 2px;">${fmtRp(it.vol * it.nego)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(ktInfo.negoSat)}</td>
+                    <td style="text-align:right; padding:2px 2px;">${fmtRp(ktInfo.jmlNego)}</td>
                   </tr>
                 `;
               }).join('')}
@@ -3161,6 +3618,7 @@ const DEFAULT_DOC_TITLE = document.title;
 
 function getPaketPrintTitle() {
   readFormInputs();
+  if (typeof ensureJadwalInitialized === 'function') ensureJadwalInitialized();
   const rawPaket = String(state.pekerjaan || state.kegiatan || "").replace(/\s+/g, " ").trim();
   if (!rawPaket) return DEFAULT_DOC_TITLE;
   // Remove characters that break filenames in print-to-PDF dialogs while keeping readability
@@ -3172,6 +3630,8 @@ function applyPaketPrintTitle() {
 }
 
 function printAllDocs() {
+  const prevActiveDoc = state.activeDoc;
+  state.activeDoc = 'all';
   renderPreview();
   const prevTitle = DEFAULT_DOC_TITLE;
   const paketTitle = getPaketPrintTitle();
@@ -3184,7 +3644,15 @@ function printAllDocs() {
   window.print();
   setTimeout(() => {
     if (document.title !== prevTitle) document.title = prevTitle;
+    if (prevActiveDoc && prevActiveDoc !== 'all') {
+      state.activeDoc = prevActiveDoc;
+      renderPreview();
+    }
   }, 2000);
+}
+
+function downloadSemuaDokumenPdf() {
+  printAllDocs();
 }
 
 
@@ -3460,6 +3928,7 @@ function parseXmlToState(xmlStr) {
   state.namaK3 = getTxt('namaK3', state.namaK3);
   state.skkK3 = getTxt('skkK3', state.skkK3);
 
+  ensureJadwalInitialized();
   const tahapNodes = Array.from(xmlDoc.getElementsByTagName('tahap'));
   tahapNodes.forEach(tn => {
     const key = tn.getAttribute('key') || '';
@@ -3538,11 +4007,20 @@ function resetAllInputsForFreshLoad() {
   state._kbliManual = false;
   state._sbuManual = false;
 
+  state.skpd = "";
+  state.bpbj = "";
+  state.daerah = "";
   state.kegiatan = "";
   state.pekerjaan = "";
   state.lokasi = "";
   state.nilaiPagu = 0;
   state.nilaiHps = 0;
+  state.skPp = "";
+  state.tglSkPp = "";
+  state.namaPp = "";
+  state.nipPp = "";
+  state.namaPpk = "";
+  state.nipPpk = "";
 
   state.namaPerusahaan = "";
   state.npwp = "";
@@ -4058,7 +4536,7 @@ function updateMissingFieldHighlights() {
     'nilaiPagu','nilaiHps','skPp','tglSkPp','namaPp','nipPp','namaPpk','nipPpk',
     'namaPerusahaan','npwp','namaPimpinan','jabatanPimpinan','alamatPerusahaan','kbli','sbu','aktaInfo',
     'nomorSuratAngka','jmlPendaftar','jmlPenawar','jmlLengkap',
-    'alatJenis','alatStatus','namaPelaksana','skkPelaksana','namaK3','skkK3'
+    'alatJenis','alatStatus','namaPelaksana','pengalamanPelaksana','skkPelaksana','namaK3','pengalamanK3','skkK3'
   ];
   let missingCount = 0;
 
@@ -4400,6 +4878,478 @@ window.addEventListener('DOMContentLoaded', () => {
   syncAll();
   renderPreview();
 });
+
+function clearInstansiPaketForm() {
+  const fieldsToClear = [
+    'skpd', 'bpbj', 'daerah', 'kegiatan', 'pekerjaan', 'lokasi',
+    'tahun', 'metode', 'kualifikasiUsaha'
+  ];
+  fieldsToClear.forEach(id => {
+    state[id] = '';
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = '';
+    }
+  });
+  state.nilaiPagu = 0;
+  state.nilaiHps = 0;
+  const paguEl = document.getElementById('nilaiPagu');
+  const hpsEl = document.getElementById('nilaiHps');
+  if (paguEl) paguEl.value = '';
+  if (hpsEl) hpsEl.value = '';
+  syncAll();
+  fieldsToClear.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.tagName !== 'SELECT') el.value = '';
+  });
+  if (paguEl) paguEl.value = '';
+  if (hpsEl) hpsEl.value = '';
+}
+
+function clearPejabatPerusahaanForm() {
+  const fieldsToClear = [
+    'skPp', 'tglSkPp', 'namaPp', 'nipPp', 'namaPpk', 'nipPpk',
+    'namaPerusahaan', 'npwp', 'namaPimpinan', 'alamatPerusahaan', 'aktaInfo'
+  ];
+  fieldsToClear.forEach(id => {
+    state[id] = '';
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = '';
+    }
+  });
+  syncAll();
+  fieldsToClear.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.tagName !== 'SELECT') el.value = '';
+  });
+}
+
+function applyKeyValueRowsToState(rows, keyAliases) {
+  let applied = 0;
+  rows.forEach(r => {
+    if (!r || r.length < 2) return;
+    const rawKey = String(r[0] || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    if (!rawKey) return;
+    const targetField = keyAliases[rawKey];
+    if (!targetField) return;
+
+    // Mendukung format 3 kolom: Kolom A = Label, Kolom B = ":", Kolom C = Nilai
+    // maupun format 2 kolom: Kolom A = Label, Kolom B = Nilai
+    let rawVal = r[1];
+    const col1Str = rawVal === undefined || rawVal === null ? '' : String(rawVal).trim();
+    if ((col1Str === ':' || col1Str === '') && r.length >= 3 && r[2] !== undefined && r[2] !== null && String(r[2]).trim() !== '') {
+      rawVal = r[2];
+    }
+
+    if (rawVal === undefined || rawVal === null) return;
+    const valStr = String(rawVal).replace(/^\s*:\s*/, '').trim();
+    if (valStr === '') return;
+
+    if (targetField === 'nilaiPagu' || targetField === 'nilaiHps') {
+      const cleanedNum = typeof rawVal === 'number'
+        ? rawVal
+        : Number(valStr.replace(/[^0-9.,-]/g, '').replace(/\.(?=\d{3}(?:\.\d+)?$)/g, '').replace(',', '.'));
+      state[targetField] = isNaN(cleanedNum) ? 0 : cleanedNum;
+    } else {
+      state[targetField] = valStr;
+    }
+    applied++;
+  });
+  return applied;
+}
+
+const ALL_MASTER_FORM_KEY_ALIASES = {
+  'skpd': 'skpd',
+  'bpbj': 'bpbj',
+  'daerah': 'daerah',
+  'kegiatan': 'kegiatan',
+  'pekerjaan': 'pekerjaan',
+  'lokasi': 'lokasi',
+  'sumber dana': 'sumberDana',
+  'tahun anggaran': 'tahun',
+  'tahun': 'tahun',
+  'metode pengadaan': 'metode',
+  'metode': 'metode',
+  'kualifikasi usaha': 'kualifikasiUsaha',
+  'nilai pagu': 'nilaiPagu',
+  'nilai pagu rp': 'nilaiPagu',
+  'nilai hps': 'nilaiHps',
+  'nilai hps rp': 'nilaiHps',
+  'sk pp': 'skPp',
+  'sk. pp': 'skPp',
+  'tanggal sk pp': 'tglSkPp',
+  'tgl sk pp': 'tglSkPp',
+  'nama pejabat pengadaan': 'namaPp',
+  'pejabat pengadaan': 'namaPp',
+  'nip pejabat pengadaan': 'nipPp',
+  'nip pp': 'nipPp',
+  'nama ppk': 'namaPpk',
+  'ppk': 'namaPpk',
+  'nip ppk': 'nipPpk',
+  'nama perusahaan': 'namaPerusahaan',
+  'perusahaan': 'namaPerusahaan',
+  'npwp': 'npwp',
+  'nama pimpinan': 'namaPimpinan',
+  'pimpinan': 'namaPimpinan',
+  'jabatan': 'jabatanPimpinan',
+  'alamat perusahaan': 'alamatPerusahaan',
+  'alamat': 'alamatPerusahaan',
+  'kbli': 'kbli',
+  'sbu': 'sbu',
+  'keterangan akta pendirian': 'aktaInfo',
+  'akta': 'aktaInfo'
+};
+
+function processMasterFormExcelFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const wb = XLSX.read(evt.target.result, { type: 'binary' });
+      let totalApplied = 0;
+      wb.SheetNames.forEach(sheetName => {
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        totalApplied += applyKeyValueRowsToState(rows, ALL_MASTER_FORM_KEY_ALIASES);
+      });
+      populateFormInputs();
+      syncAll();
+      alert(totalApplied > 0
+        ? `Berhasil memuat ${totalApplied} isian form dari ${file.name}.`
+        : `Tidak ada baris isian yang cocok pada ${file.name}.`);
+    } catch (err) {
+      alert('Gagal membaca file Excel: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function handleUploadInstansiPaketExcel(e) {
+  const file = e && e.target && e.target.files ? e.target.files[0] : null;
+  if (!file) return;
+  processMasterFormExcelFile(file);
+  e.target.value = '';
+}
+
+function handleUploadPejabatPerusahaanExcel(e) {
+  const file = e && e.target && e.target.files ? e.target.files[0] : null;
+  if (!file) return;
+  processMasterFormExcelFile(file);
+  e.target.value = '';
+}
+
+const DEFAULT_DATABASE_PP_LIST = [
+  {
+    skpd: "Dinas Perumahan Rakyat dan Kawasan Permukiman",
+    bpbj: "Bagian Pengadaan Barang dan Jasa",
+    daerah: "Kab. Kutai Timur",
+    skPp: "T-900.1.3.5/1266/PERKIM.PERMUKIMAN",
+    tglSkPp: "12 Agustus 2026",
+    namaPp: "Rieni Puspita, SP",
+    nipPp: "NIPPPK. 199109122024212036",
+    namaPpk: "Evan Dwianto Rante Tondok, ST",
+    nipPpk: "NIP. 199305112019031008"
+  }
+];
+
+const DATABASE_PP_STORAGE_KEY = "nontender_database_pp_list_v1";
+
+function loadPersistedDatabasePpList() {
+  try {
+    const raw = localStorage.getItem(DATABASE_PP_STORAGE_KEY);
+    if (!raw) return DEFAULT_DATABASE_PP_LIST.map(x => ({ ...x }));
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return DEFAULT_DATABASE_PP_LIST.map(x => ({ ...x }));
+    }
+    return parsed
+      .filter(item => item && (item.namaPp || item.namaPpk))
+      .map(item => ({
+        skpd: String(item.skpd || DEFAULT_DATABASE_PP_LIST[0].skpd).trim(),
+        bpbj: String(item.bpbj || DEFAULT_DATABASE_PP_LIST[0].bpbj).trim(),
+        daerah: String(item.daerah || DEFAULT_DATABASE_PP_LIST[0].daerah).trim(),
+        skPp: String(item.skPp || DEFAULT_DATABASE_PP_LIST[0].skPp).trim(),
+        tglSkPp: String(item.tglSkPp || DEFAULT_DATABASE_PP_LIST[0].tglSkPp).trim(),
+        namaPp: String(item.namaPp || DEFAULT_DATABASE_PP_LIST[0].namaPp).trim(),
+        nipPp: String(item.nipPp || DEFAULT_DATABASE_PP_LIST[0].nipPp).trim(),
+        namaPpk: String(item.namaPpk || "").trim(),
+        nipPpk: String(item.nipPpk || "").trim()
+      }));
+  } catch (err) {
+    return DEFAULT_DATABASE_PP_LIST.map(x => ({ ...x }));
+  }
+}
+
+let DATABASE_PP_LIST = loadPersistedDatabasePpList();
+const EXCEL_DATABASE_PP_RECORD = DATABASE_PP_LIST[0];
+
+function savePersistedDatabasePpList() {
+  try {
+    localStorage.setItem(DATABASE_PP_STORAGE_KEY, JSON.stringify(DATABASE_PP_LIST));
+  } catch (err) {}
+}
+
+function extractPpPpkEntriesFromRows(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const kvMap = {};
+  const multiEntries = [];
+
+  rows.forEach(r => {
+    if (!Array.isArray(r)) return;
+    const cells = r.map(v => (v === null || v === undefined ? "" : String(v).trim()));
+    const nonEmpty = cells.filter(c => c !== "");
+    if (nonEmpty.length >= 2) {
+      const keyNorm = nonEmpty[0].replace(/:+$/, "").trim().toLowerCase();
+      const valStr = nonEmpty[nonEmpty.length - 1].trim();
+      if (keyNorm && valStr && !/^selalu\s+copy\s+file/i.test(keyNorm) && !/^data\s+instansi/i.test(keyNorm)) {
+        kvMap[keyNorm] = valStr;
+      }
+    }
+  });
+
+  const base = DATABASE_PP_LIST[0] || DEFAULT_DATABASE_PP_LIST[0];
+  const candidate = {
+    skpd: kvMap["skpd"] || base.skpd,
+    bpbj: kvMap["bpbj"] || base.bpbj,
+    daerah: kvMap["daerah"] || base.daerah,
+    skPp: kvMap["sk pp"] || kvMap["sk. pp"] || base.skPp,
+    tglSkPp: kvMap["tanggal sk pp"] || kvMap["tgl sk pp"] || base.tglSkPp,
+    namaPp: kvMap["nama pejabat pengadaan"] || kvMap["pejabat pengadaan"] || kvMap["nama pp"] || "",
+    nipPp: kvMap["nip pejabat pengadaan"] || kvMap["nip pp"] || base.nipPp,
+    namaPpk: kvMap["nama ppk"] || kvMap["ppk"] || "",
+    nipPpk: kvMap["nip ppk"] || base.nipPpk
+  };
+
+  if (candidate.namaPp || candidate.namaPpk) {
+    if (!candidate.namaPp) candidate.namaPp = base.namaPp;
+    if (!candidate.namaPpk) candidate.namaPpk = "PPK Baru";
+    multiEntries.push(candidate);
+  }
+
+  // Also check if rows form a multi-column table with headers for PP and PPK
+  const headerIdx = rows.findIndex(r => Array.isArray(r) && r.some(c => /nama\s*(pejabat\s*pengadaan|pp)/i.test(String(c || ""))) && r.some(c => /nama\s*ppk|ppk/i.test(String(c || ""))));
+  if (headerIdx !== -1) {
+    const hdr = rows[headerIdx].map(c => String(c || "").trim().toLowerCase());
+    const idxPp = hdr.findIndex(h => /nama\s*(pejabat\s*pengadaan|pp)/.test(h));
+    const idxPpk = hdr.findIndex(h => /nama\s*ppk|ppk/.test(h));
+    const idxNipPp = hdr.findIndex(h => /nip\s*(pejabat\s*pengadaan|pp)/.test(h));
+    const idxNipPpk = hdr.findIndex(h => /nip\s*ppk/.test(h));
+    const idxSkPp = hdr.findIndex(h => /sk\s*\.?\s*pp/.test(h));
+    const idxTglSk = hdr.findIndex(h => /tanggal\s*sk|tgl\s*sk/.test(h));
+    const idxSkpd = hdr.findIndex(h => /skpd/.test(h));
+
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!Array.isArray(row)) continue;
+      const ppVal = idxPp >= 0 ? String(row[idxPp] || "").trim() : "";
+      const ppkVal = idxPpk >= 0 ? String(row[idxPpk] || "").trim() : "";
+      if (ppVal || ppkVal) {
+        multiEntries.push({
+          skpd: (idxSkpd >= 0 && String(row[idxSkpd] || "").trim()) || base.skpd,
+          bpbj: base.bpbj,
+          daerah: base.daerah,
+          skPp: (idxSkPp >= 0 && String(row[idxSkPp] || "").trim()) || base.skPp,
+          tglSkPp: (idxTglSk >= 0 && String(row[idxTglSk] || "").trim()) || base.tglSkPp,
+          namaPp: ppVal || base.namaPp,
+          nipPp: (idxNipPp >= 0 && String(row[idxNipPp] || "").trim()) || base.nipPp,
+          namaPpk: ppkVal || "PPK Baru",
+          nipPpk: (idxNipPpk >= 0 && String(row[idxNipPpk] || "").trim()) || base.nipPpk
+        });
+      }
+    }
+  }
+
+  return multiEntries;
+}
+
+function triggerTambahPpPpkExcelUpload() {
+  let inp = document.getElementById('inp-tambah-pp-ppk-excel');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.id = 'inp-tambah-pp-ppk-excel';
+    inp.type = 'file';
+    inp.accept = '.xlsx,.xls,.csv';
+    inp.className = 'hidden';
+    inp.onchange = handleTambahPpPpkExcelUpload;
+    document.body.appendChild(inp);
+  }
+  inp.value = '';
+  inp.click();
+}
+
+function handleTambahPpPpkExcelUpload(e) {
+  const file = e && e.target && e.target.files ? e.target.files[0] : null;
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const wb = XLSX.read(evt.target.result, { type: 'binary' });
+      const collected = [];
+      wb.SheetNames.forEach(sheetName => {
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const found = extractPpPpkEntriesFromRows(rows);
+        found.forEach(entry => collected.push(entry));
+      });
+
+      if (collected.length === 0) {
+        alert('Tidak ditemukan data Nama PP atau Nama PPK pada file Excel tersebut.');
+        return;
+      }
+
+      let addedCount = 0;
+      collected.forEach(entry => {
+        const exists = DATABASE_PP_LIST.some(
+          existing =>
+            existing.namaPp.trim().toLowerCase() === entry.namaPp.trim().toLowerCase() &&
+            existing.namaPpk.trim().toLowerCase() === entry.namaPpk.trim().toLowerCase() &&
+            existing.skPp.trim().toLowerCase() === entry.skPp.trim().toLowerCase()
+        );
+        if (!exists) {
+          DATABASE_PP_LIST.push(entry);
+          addedCount++;
+        }
+      });
+
+      savePersistedDatabasePpList();
+      databasePpClickStep = 2;
+      renderDatabasePpPopup();
+      alert(
+        addedCount > 0
+          ? `Berhasil menambahkan ${addedCount} data PP & PPK dari ${file.name} dan tersimpan permanen.`
+          : `Data PP & PPK dari ${file.name} sudah ada dan tersimpan permanen.`
+      );
+    } catch (err) {
+      alert('Gagal membaca file Excel: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+  e.target.value = '';
+}
+
+let databasePpClickStep = 0;
+
+function getExcelPpPpkPair(idx = 0) {
+  const item = DATABASE_PP_LIST[idx] || DATABASE_PP_LIST[0];
+  const ppName = item.namaPp;
+  const ppkName = item.namaPpk;
+  return { ppName, ppkName, joined: `${ppName} - ${ppkName}` };
+}
+
+function downloadContohIsianPpPpkExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert('Pustaka XLSX belum termuat. Silakan periksa koneksi internet.');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+
+  const sheet1Rows = [
+    ["Data Instansi & Paket Pekerjaan"],
+    [],
+    ["SKPD", ":", "Dinas Lingkungan Hidup"],
+    ["BPBJ", ":", "Bagian Pengadaan Barang dan Jasa"],
+    ["Daerah", ":", "Kab. Kutai Timur"],
+    ["SK PP", ":", "T-900.1.3.5/0450/DLH.SEK"],
+    ["Tanggal SK PP", ":", "10 Agustus 2026"],
+    ["Nama Pejabat Pengadaan", ":", "Seo Ji-hoon, SP"],
+    ["NIP Pejabat Pengadaan", ":", "NIPPPK. 199109122024212036"],
+    ["Nama PPK", ":", "Kang Min-jun, ST"],
+    ["NIP PPK", ":", "NIP. 199004152015031004"]
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
+  ws1['!cols'] = [{ wch: 28 }, { wch: 6 }, { wch: 46 }];
+  XLSX.utils.book_append_sheet(wb, ws1, "Form_Isian_PP_PPK");
+
+  const sheet2Rows = [
+    ["No", "SKPD", "SK PP", "Tanggal SK PP", "Nama Pejabat Pengadaan", "NIP Pejabat Pengadaan", "Nama PPK", "NIP PPK"],
+    [1, "Dinas Lingkungan Hidup", "T-900.1.3.5/0450/DLH.SEK", "10 Agustus 2026", "Seo Ji-hoon, SP", "NIPPPK. 199109122024212036", "Kang Min-jun, ST", "NIP. 199004152015031004"],
+    [2, "Dinas Perumahan Rakyat dan Kawasan Permukiman", "T-900.1.3.5/1280/PERKIM", "18 Agustus 2026", "Han So-hee, SP", "NIPPPK. 199205182024212014", "Park Do-hyun, ST, MT", "NIP. 198807202014021002"],
+    [3, "Dinas Pekerjaan Umum dan Penataan Ruang", "T-900.1.3.5/0892/PUPR", "24 Agustus 2026", "Yoon Ji-min, SP", "NIPPPK. 199311042024212021", "Choi Eun-woo, ST", "NIP. 199103092018022001"]
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
+  ws2['!cols'] = [{ wch: 6 }, { wch: 36 }, { wch: 28 }, { wch: 18 }, { wch: 24 }, { wch: 28 }, { wch: 26 }, { wch: 28 }];
+  XLSX.utils.book_append_sheet(wb, ws2, "Daftar_Multi_PP_PPK");
+
+  XLSX.writeFile(wb, "Contoh_Isian_Database_PP_PPK-v2.xlsx");
+}
+
+function removeDatabasePpItem(idx) {
+  if (!Array.isArray(DATABASE_PP_LIST) || idx < 0 || idx >= DATABASE_PP_LIST.length) return;
+  DATABASE_PP_LIST.splice(idx, 1);
+  if (DATABASE_PP_LIST.length === 0) {
+    DATABASE_PP_LIST = DEFAULT_DATABASE_PP_LIST.map(x => ({ ...x }));
+  }
+  savePersistedDatabasePpList();
+  databasePpClickStep = 2;
+  renderDatabasePpPopup();
+}
+
+function renderDatabasePpPopup() {
+  const contentEl = document.getElementById('database-pp-content');
+  if (!contentEl) return;
+
+  if (databasePpClickStep <= 1) {
+    contentEl.innerHTML = `
+      <div class="text-slate-600 mb-2">Daftar PP dan PPK:</div>
+      <button type="button" onclick="revealDatabasePpNameInPopup()" class="w-full text-left px-3.5 py-2.5 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-semibold transition cursor-pointer">
+        Daftar PP dan PPK
+      </button>
+    `;
+  } else {
+    const itemsHtml = DATABASE_PP_LIST.map((item, idx) => `
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="applyDatabasePpSelection(${idx})" class="flex-1 text-left px-3.5 py-3 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-slate-900 font-bold transition cursor-pointer truncate">
+          ${item.namaPp} - ${item.namaPpk}
+        </button>
+        <button type="button" onclick="removeDatabasePpItem(${idx})" class="shrink-0 px-3 py-3 rounded-lg border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold transition cursor-pointer">
+          Hapus PP
+        </button>
+      </div>
+    `).join('');
+
+    const actionRowHtml = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+        <button type="button" onclick="triggerTambahPpPpkExcelUpload()" class="w-full text-center px-3 py-2.5 rounded-lg border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold transition cursor-pointer">
+          Tambah PP &amp; PPK
+        </button>
+        <button type="button" onclick="downloadContohIsianPpPpkExcel()" class="w-full text-center px-3 py-2.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold transition cursor-pointer">
+          Contoh Isian
+        </button>
+      </div>
+    `;
+
+    contentEl.innerHTML = itemsHtml + actionRowHtml;
+  }
+}
+
+function handleDatabasePpButtonClick() {
+  const modal = document.getElementById('modal-database-pp');
+  if (!modal) return;
+  databasePpClickStep = 2;
+  renderDatabasePpPopup();
+  modal.classList.remove('hidden');
+}
+
+function revealDatabasePpNameInPopup() {
+  databasePpClickStep = 2;
+  renderDatabasePpPopup();
+}
+
+function applyDatabasePpSelection(idx = 0) {
+  const selected = DATABASE_PP_LIST[idx] || DATABASE_PP_LIST[0];
+  if (!selected) return;
+  Object.assign(state, selected);
+  if (typeof populateFormInputs === 'function') populateFormInputs();
+  if (typeof syncAll === 'function') syncAll();
+  closeDatabasePpModal();
+}
+
+function closeDatabasePpModal() {
+  const modal = document.getElementById('modal-database-pp');
+  if (modal) modal.classList.add('hidden');
+  databasePpClickStep = 0;
+}
 </script>
 </body>
 </html>
