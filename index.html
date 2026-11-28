@@ -205,10 +205,10 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button onclick="saveXml()" class="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-md transition cursor-pointer">
-          Save As
+          Simpan XML
         </button>
         <label class="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-md transition cursor-pointer">
-          Load XML / JSON
+          Upload XML
           <input type="file" accept=".xml,.json" class="hidden" onchange="loadSavedDraft(event)">
         </label>
         <button type="button" id="btn-download-semua-pdf" onclick="downloadSemuaDokumenPdf()" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-md transition cursor-pointer">
@@ -882,9 +882,8 @@ function getNomorSurat(key) {
   const j = state.jadwal.find(x => x.key === key);
   if (!j) return "-";
   const num = getNomorSuratAngka();
-  const thn = (j.tgl && j.tgl.length >= 4) ? j.tgl.slice(0, 4) : (state.tahun || "2026");
-  if (key === "dok") return `T-000.3.2/${num}/Dok.PBJ/${thn}`;
-  return `T-000.3.2/${num}/${j.kode}/PBJ/${thn}`;
+  if (key === "dok") return `T-000.3.2/${num}/Dok.PBJ`;
+  return `T-000.3.2/${num}/${j.kode}/PBJ`;
 }
 
 function getJadwalInfo(key) {
